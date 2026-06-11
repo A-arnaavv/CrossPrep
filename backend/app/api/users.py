@@ -1,0 +1,42 @@
+from fastapi import APIRouter
+from fastapi import Depends
+
+from sqlalchemy.orm import Session
+
+from app.dependencies import get_db
+from app.models.user import User
+from app.schemas.user import UserCreate
+
+router = APIRouter()
+
+
+@router.post("/sync")
+def sync_user(
+    payload: UserCreate,
+    db: Session = Depends(get_db),
+):
+    existing_user = (
+        db.query(User)
+        .filter(User.clerk_id == payload.clerk_id)
+        .first()
+    )
+
+    if existing_user:
+        return {
+            "message": "User already exists"
+        }
+
+    user = User(
+        clerk_id=payload.clerk_id,
+        email=payload.email,
+        name=payload.name,
+    )
+
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return {
+        "message": "User created",
+        "id": str(user.id),
+    }
