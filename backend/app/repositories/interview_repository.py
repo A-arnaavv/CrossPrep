@@ -25,3 +25,15 @@ class InterviewRepository:
         self.db.refresh(interview)
 
         return interview
+
+    def get_by_id(
+        self,
+        interview_id,
+    ):
+        return (
+            self.db.query(Interview)
+            .filter(
+                Interview.id == interview_id
+            )
+            .first()
+        )

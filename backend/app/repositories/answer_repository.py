@@ -31,3 +31,31 @@ class AnswerRepository:
         self.db.refresh(answer)
 
         return answer
+    
+    def get_by_question_ids(
+        self,
+        question_ids,
+    ):
+        return (
+            self.db.query(Answer)
+            .filter(
+                Answer.question_id.in_(
+                    question_ids
+                )
+            )
+            .all()
+        )
+
+    def get_all_by_question_ids(
+        self,
+        question_ids,
+    ):
+        return (
+            self.db.query(Answer)
+            .filter(
+                Answer.question_id.in_(
+                    question_ids
+                )
+            )
+            .all()
+        )
