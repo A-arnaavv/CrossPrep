@@ -37,3 +37,9 @@ class Question(Base):
         "Interview",
         back_populates="questions",
     )
+
+    answers = relationship(
+        "Answer",
+        back_populates="question",
+        cascade="all, delete-orphan",
+    )

@@ -30,3 +30,15 @@ class QuestionRepository:
         self.db.commit()
 
         return records
+
+    def get_by_id(
+        self,
+        question_id,
+    ):
+        return (
+            self.db.query(Question)
+            .filter(
+                Question.id == question_id
+            )
+            .first()
+        )

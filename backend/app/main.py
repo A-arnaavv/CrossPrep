@@ -5,6 +5,9 @@ from app.api.resumes import router as resumes_router
 from app.api.interviews import (
     router as interviews_router
 )
+from app.api.answers import (
+    router as answers_router
+)
 
 app = FastAPI(title="InterviewGPT API")
 
@@ -42,4 +45,10 @@ app.include_router(
     interviews_router,
     prefix="/api/interviews",
     tags=["interviews"],
+)
+
+app.include_router(
+    answers_router,
+    prefix="/api/answers",
+    tags=["answers"],
 )

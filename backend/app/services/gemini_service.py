@@ -111,3 +111,57 @@ Format:
         return json.loads(
             response_text
         )
+
+    @staticmethod
+    def evaluate_answer(
+        question: str,
+        answer: str,
+    ):
+        model = genai.GenerativeModel(
+            "gemini-2.5-flash"
+        )
+
+        prompt = f"""
+You are a senior technical interviewer.
+
+Question:
+{question}
+
+Candidate Answer:
+{answer}
+
+Evaluate the answer.
+
+Score should be between 0 and 10.
+
+Return ONLY valid JSON.
+
+Format:
+
+{{
+    "score": 0,
+    "feedback": "",
+    "ideal_answer": ""
+}}
+"""
+
+        response = model.generate_content(
+            prompt
+        )
+
+        response_text = (
+            response.text
+            .replace("```json", "")
+            .replace("```", "")
+            .strip()
+        )
+
+        result = json.loads(
+            response_text
+        )
+
+        result["score"] = int(
+            result.get("score", 0)
+        )
+
+        return result
