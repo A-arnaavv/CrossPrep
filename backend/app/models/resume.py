@@ -34,8 +34,23 @@ class Resume(Base):
     )
 
     skills: Mapped[dict] = mapped_column(
+    JSONB,
+    default=dict,
+    )
+
+    projects: Mapped[list] = mapped_column(
         JSONB,
-        default=dict,
+        default=list,
+    )
+
+    experience: Mapped[list] = mapped_column(
+        JSONB,
+        default=list,
+    )
+
+    education: Mapped[list] = mapped_column(
+        JSONB,
+        default=list,
     )
 
     uploaded_at: Mapped[datetime] = mapped_column(

@@ -42,3 +42,9 @@ class Interview(Base):
         "User",
         back_populates="interviews"
     )
+
+    questions = relationship(
+        "Question",
+        back_populates="interview",
+        cascade="all, delete-orphan",
+    )

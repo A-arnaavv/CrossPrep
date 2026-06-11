@@ -2,6 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.users import router as users_router
 from app.api.resumes import router as resumes_router
+from app.api.interviews import (
+    router as interviews_router
+)
 
 app = FastAPI(title="InterviewGPT API")
 
@@ -33,4 +36,10 @@ app.include_router(
     resumes_router,
     prefix="/api/resumes",
     tags=["resumes"],
+)
+
+app.include_router(
+    interviews_router,
+    prefix="/api/interviews",
+    tags=["interviews"],
 )

@@ -432,3 +432,18 @@ skills
 projects
 experience
 education
+
+Technical Debt:
+
+Migration:
+adc6ba2d24b0_add_resume_analysis_fields
+
+Originally generated with pass.
+
+Columns were manually added to PostgreSQL:
+
+- projects
+- experience
+- education
+
+Migration history should be cleaned before production deployment.

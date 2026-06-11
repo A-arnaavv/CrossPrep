@@ -77,3 +77,18 @@ class ResumeRepository:
         self.db.refresh(resume)
 
         return resume
+    
+    def get_latest_by_user(
+    self,
+    user_id,
+    ):
+        return (
+            self.db.query(Resume)
+            .filter(
+                Resume.user_id == user_id
+            )
+            .order_by(
+                Resume.uploaded_at.desc()
+            )
+            .first()
+        )

@@ -11,6 +11,7 @@ genai.configure(
 
 
 class GeminiService:
+
     @staticmethod
     def analyze_resume(
         resume_text: str,
@@ -42,18 +43,71 @@ Resume:
             prompt
         )
 
-        response_text = response.text
-
-        response_text = response_text.replace(
-            "```json",
-            ""
-        )
-
-        response_text = response_text.replace(
-            "```",
-            ""
+        response_text = (
+            response.text
+            .replace("```json", "")
+            .replace("```", "")
+            .strip()
         )
 
         return json.loads(
-            response_text.strip()
+            response_text
+        )
+
+    @staticmethod
+    def generate_interview_questions(
+        role: str,
+        level: str,
+        skills: list,
+        projects: list,
+    ):
+        model = genai.GenerativeModel(
+            "gemini-2.5-flash"
+        )
+
+        prompt = f"""
+Generate exactly 10 personalized interview questions.
+
+Role:
+{role}
+
+Experience Level:
+{level}
+
+Candidate Skills:
+{skills}
+
+Candidate Projects:
+{projects}
+
+Rules:
+1. Questions must be relevant to the candidate profile.
+2. Mix technical and project-based questions.
+3. Increase difficulty based on level.
+4. Return ONLY valid JSON.
+
+Format:
+
+{{
+  "questions": [
+    "question 1",
+    "question 2",
+    "question 3"
+  ]
+}}
+"""
+
+        response = model.generate_content(
+            prompt
+        )
+
+        response_text = (
+            response.text
+            .replace("```json", "")
+            .replace("```", "")
+            .strip()
+        )
+
+        return json.loads(
+            response_text
         )
