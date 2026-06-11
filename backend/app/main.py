@@ -8,6 +8,8 @@ from app.api.interviews import (
 from app.api.answers import (
     router as answers_router
 )
+from app.api.auth import router as auth_router
+
 
 app = FastAPI(title="InterviewGPT API")
 
@@ -51,4 +53,10 @@ app.include_router(
     answers_router,
     prefix="/api/answers",
     tags=["answers"],
+)
+
+app.include_router(
+    auth_router,
+    prefix="/api/auth",
+    tags=["auth"],
 )
