@@ -1,4 +1,6 @@
-from uuid import UUID
+from app.repositories.user_repository import (
+    UserRepository,
+)
 
 from fastapi import APIRouter
 from fastapi import Depends
@@ -33,36 +35,41 @@ router = APIRouter()
 
 @router.post("/upload")
 async def upload_resume(
-    user_id: UUID = Form(...),
+    clerk_id: str = Form(...),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
 ):
     file_bytes = await file.read()
 
-    storage_path = (
-        StorageService.upload_resume(
-            file_bytes=file_bytes,
-            file_name=file.filename,
-        )
+    storage_path = StorageService.upload_resume(
+        file_bytes=file_bytes,
+        file_name=file.filename,
     )
 
     repo = ResumeRepository(db)
 
+    user_repo = UserRepository(db)
+
+    user = user_repo.get_by_clerk_id(
+        clerk_id
+    )
+
+    if not user:
+        return {
+            "error": "User not found"
+        }
+
     resume = repo.create(
-        user_id=user_id,
+        user_id=user.id,
         file_url=storage_path,
     )
 
-    parsed_text = (
-        PDFService.extract_text(
-            file_bytes
-        )
+    parsed_text = PDFService.extract_text(
+        file_bytes
     )
 
-    analysis = (
-        GeminiService.analyze_resume(
-            parsed_text
-        )
+    analysis = GeminiService.analyze_resume(
+        parsed_text
     )
 
     repo.update_parsed_text(
@@ -87,16 +94,8 @@ async def upload_resume(
         "resume_id": str(
             updated_resume.id
         ),
-        "skills": (
-            updated_resume.skills
-        ),
-        "projects": (
-            updated_resume.projects
-        ),
-        "experience": (
-            updated_resume.experience
-        ),
-        "education": (
-            updated_resume.education
-        ),
+        "skills": updated_resume.skills,
+        "projects": updated_resume.projects,
+        "experience": updated_resume.experience,
+        "education": updated_resume.education,
     }

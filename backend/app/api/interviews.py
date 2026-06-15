@@ -121,6 +121,36 @@ def get_interview(
         ],
     }
 
+@router.get("/user/{user_id}")
+def get_user_interviews(
+    user_id: UUID,
+    db: Session = Depends(get_db),
+):
+    interview_repo = InterviewRepository(
+        db
+    )
+
+    interviews = (
+        interview_repo.get_by_user(
+            user_id
+        )
+    )
+
+    return [
+        {
+            "interview_id": str(
+                interview.id
+            ),
+            "role": interview.role,
+            "level": interview.level,
+            "status": interview.status,
+            "created_at": str(
+                interview.created_at
+            ),
+        }
+        for interview in interviews
+    ]
+
 @router.get("/{interview_id}/results")
 def get_results(
     interview_id: UUID,

@@ -1,29 +1,35 @@
-from supabase import create_client
-
-from app.core.config import settings
+import os
 import uuid
-
-supabase = create_client(
-    settings.SUPABASE_URL,
-    settings.SUPABASE_SERVICE_KEY,
-)
 
 
 class StorageService:
-    BUCKET = "resumes"
-
     @staticmethod
     def upload_resume(
         file_bytes: bytes,
         file_name: str,
     ):
-        path = f"uploads/{uuid.uuid4()}_{file_name}"
+        uploads_dir = "uploads"
 
-        supabase.storage.from_(
-            StorageService.BUCKET
-        ).upload(
-            path,
-            file_bytes,
+        os.makedirs(
+            uploads_dir,
+            exist_ok=True,
         )
+
+        unique_name = (
+            f"{uuid.uuid4()}_{file_name}"
+        )
+
+        path = os.path.join(
+            uploads_dir,
+            unique_name,
+        )
+
+        with open(
+            path,
+            "wb",
+        ) as file:
+            file.write(
+                file_bytes
+            )
 
         return path

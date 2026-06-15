@@ -37,3 +37,18 @@ class InterviewRepository:
             )
             .first()
         )
+
+    def get_by_user(
+        self,
+        user_id,
+    ):
+        return (
+            self.db.query(Interview)
+            .filter(
+                Interview.user_id == user_id
+            )
+            .order_by(
+                Interview.created_at.desc()
+            )
+            .all()
+        )
