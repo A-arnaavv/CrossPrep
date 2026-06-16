@@ -111,3 +111,41 @@ def get_dashboard_stats(
                 2
             ),
     }
+
+@router.get("/activity/{clerk_id}")
+def get_recent_activity(
+    clerk_id: str,
+    db: Session = Depends(get_db),
+):
+    user = (
+        db.query(User)
+        .filter(
+            User.clerk_id == clerk_id
+        )
+        .first()
+    )
+
+    if not user:
+        return []
+
+    interviews = (
+        db.query(Interview)
+        .filter(
+            Interview.user_id == user.id
+        )
+        .order_by(
+            Interview.created_at.desc()
+        )
+        .limit(5)
+        .all()
+    )
+
+    return [
+        {
+            "role": interview.role,
+            "level": interview.level,
+            "status": interview.status,
+            "created_at": interview.created_at,
+        }
+        for interview in interviews
+    ]

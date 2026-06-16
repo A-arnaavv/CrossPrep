@@ -27,21 +27,36 @@ from app.repositories.answer_repository import (
     AnswerRepository,
 )
 
+from app.repositories.user_repository import (
+    UserRepository,
+)
+
 router = APIRouter()
 
 
 @router.post("/create")
 def create_interview(
-    user_id: UUID,
+    clerk_id: str,
     role: str,
     level: str,
     db: Session = Depends(get_db),
 ):
+    user_repo = UserRepository(db)
+
+    user = user_repo.get_by_clerk_id(
+        clerk_id
+    )
+
+    if not user:
+        return {
+            "error": "User not found"
+        }
+
     resume_repo = ResumeRepository(db)
 
     resume = (
         resume_repo.get_latest_by_user(
-            user_id
+            user.id
         )
     )
 
@@ -55,7 +70,7 @@ def create_interview(
     )
 
     interview = interview_repo.create(
-        user_id=user_id,
+        user_id=user.id,
         role=role,
         level=level,
     )
@@ -121,18 +136,27 @@ def get_interview(
         ],
     }
 
-@router.get("/user/{user_id}")
+@router.get("/user/{clerk_id}")
 def get_user_interviews(
-    user_id: UUID,
+    clerk_id: str,
     db: Session = Depends(get_db),
 ):
+    user_repo = UserRepository(db)
+
+    user = user_repo.get_by_clerk_id(
+        clerk_id
+    )
+
+    if not user:
+        return []
+
     interview_repo = InterviewRepository(
         db
     )
 
     interviews = (
         interview_repo.get_by_user(
-            user_id
+            user.id
         )
     )
 
@@ -150,84 +174,6 @@ def get_user_interviews(
         }
         for interview in interviews
     ]
-
-@router.get("/{interview_id}/results")
-def get_results(
-    interview_id: UUID,
-    db: Session = Depends(get_db),
-):
-    interview_repo = InterviewRepository(
-        db
-    )
-
-    interview = interview_repo.get_by_id(
-        interview_id
-    )
-
-    if not interview:
-        return {
-            "error": "Interview not found"
-        }
-
-    question_ids = [
-        question.id
-        for question in interview.questions
-    ]
-
-    answer_repo = AnswerRepository(
-        db
-    )
-
-    answers = (
-        answer_repo.get_by_question_ids(
-            question_ids
-        )
-    )
-
-    total_questions = len(
-        interview.questions
-    )
-
-    answered_questions = len(
-        answers
-    )
-
-    average_score = 0
-
-    if answers:
-        average_score = (
-            sum(
-                answer.score
-                for answer in answers
-            )
-            / len(answers)
-        )
-
-    completion_percentage = 0
-
-    if total_questions:
-        completion_percentage = (
-            answered_questions
-            / total_questions
-        ) * 100
-
-    return {
-        "interview_id": str(
-            interview.id
-        ),
-        "role": interview.role,
-        "level": interview.level,
-        "questions_answered": answered_questions,
-        "total_questions": total_questions,
-        "completion_percentage": round(
-            completion_percentage,
-            2,
-        ),
-        "average_score": round(
-            average_score,
-            2,
-        ),
-    }
 
 @router.get("/{interview_id}/report")
 def get_report(
