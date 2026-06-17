@@ -53,6 +53,30 @@ class Resume(Base):
         default=list,
     )
 
+    ats_score: Mapped[int] = mapped_column(
+    default=0,
+    )
+
+    strengths: Mapped[list] = mapped_column(
+        JSONB,
+        default=list,
+    )
+
+    weaknesses: Mapped[list] = mapped_column(
+        JSONB,
+        default=list,
+    )
+
+    missing_skills: Mapped[list] = mapped_column(
+        JSONB,
+        default=list,
+    )
+
+    recommendations: Mapped[list] = mapped_column(
+        JSONB,
+        default=list,
+    )
+
     uploaded_at: Mapped[datetime] = mapped_column(
         DateTime,
         default=datetime.utcnow,

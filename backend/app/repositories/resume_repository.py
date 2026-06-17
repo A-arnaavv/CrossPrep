@@ -49,7 +49,9 @@ class ResumeRepository:
     ):
         resume = (
             self.db.query(Resume)
-            .filter(Resume.id == resume_id)
+            .filter(
+                Resume.id == resume_id
+            )
             .first()
         )
 
@@ -70,6 +72,31 @@ class ResumeRepository:
 
         resume.education = analysis.get(
             "education",
+            [],
+        )
+
+        resume.ats_score = analysis.get(
+            "ats_score",
+            0,
+        )
+
+        resume.strengths = analysis.get(
+            "strengths",
+            [],
+        )
+
+        resume.weaknesses = analysis.get(
+            "weaknesses",
+            [],
+        )
+
+        resume.missing_skills = analysis.get(
+            "missing_skills",
+            [],
+        )
+
+        resume.recommendations = analysis.get(
+            "recommendations",
             [],
         )
 

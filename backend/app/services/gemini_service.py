@@ -21,6 +21,10 @@ class GeminiService:
         )
 
         prompt = f"""
+You are an expert technical recruiter,
+ATS specialist,
+and hiring manager.
+
 Analyze the following resume.
 
 Return ONLY valid JSON.
@@ -31,8 +35,32 @@ Format:
   "skills": [],
   "projects": [],
   "experience": [],
-  "education": []
+  "education": [],
+
+  "ats_score": 0,
+
+  "strengths": [],
+
+  "weaknesses": [],
+
+  "missing_skills": [],
+
+  "recommendations": []
 }}
+
+Rules:
+
+1. ATS Score must be between 0 and 100.
+
+2. Strengths should contain the strongest aspects of the resume.
+
+3. Weaknesses should contain issues that reduce interview chances.
+
+4. Missing Skills should contain important industry skills that appear absent.
+
+5. Recommendations should be specific improvements.
+
+6. Return ONLY valid JSON.
 
 Resume:
 

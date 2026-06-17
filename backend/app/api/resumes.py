@@ -30,6 +30,10 @@ from app.services.gemini_service import (
     GeminiService,
 )
 
+from app.services.ats_service import (
+    ATSService,
+)
+
 router = APIRouter()
 
 
@@ -72,6 +76,34 @@ async def upload_resume(
         parsed_text
     )
 
+    analysis["ats_score"] = (
+        ATSService.calculate_score(
+            skills=analysis.get(
+                "skills",
+                [],
+            ),
+            projects=analysis.get(
+                "projects",
+                [],
+            ),
+            experience=analysis.get(
+                "experience",
+                [],
+            ),
+            education=analysis.get(
+                "education",
+                [],
+            ),
+        )
+    )
+    print("\n")
+    print("================================")
+    print("RESUME ANALYSIS")
+    print("================================")
+    print(analysis)
+    print("================================")
+    print("\n")
+
     repo.update_parsed_text(
         resume.id,
         parsed_text,
@@ -94,8 +126,26 @@ async def upload_resume(
         "resume_id": str(
             updated_resume.id
         ),
+
         "skills": updated_resume.skills,
+
         "projects": updated_resume.projects,
+
         "experience": updated_resume.experience,
+
         "education": updated_resume.education,
+
+        "ats_score": updated_resume.ats_score,
+
+        "strengths": updated_resume.strengths,
+
+        "weaknesses": updated_resume.weaknesses,
+
+        "missing_skills": (
+            updated_resume.missing_skills
+        ),
+
+        "recommendations": (
+            updated_resume.recommendations
+        ),
     }
