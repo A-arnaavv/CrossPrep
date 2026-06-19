@@ -160,20 +160,53 @@ def get_user_interviews(
         )
     )
 
-    return [
-        {
-            "interview_id": str(
-                interview.id
-            ),
-            "role": interview.role,
-            "level": interview.level,
-            "status": interview.status,
-            "created_at": str(
-                interview.created_at
-            ),
-        }
-        for interview in interviews
-    ]
+    answer_repo = AnswerRepository(
+        db
+    )
+
+    data = []
+
+    for interview in interviews:
+
+        question_ids = [
+            q.id
+            for q in interview.questions
+        ]
+
+        answers = (
+            answer_repo.get_all_by_question_ids(
+                question_ids
+            )
+        )
+
+        average_score = 0
+
+        if answers:
+            average_score = round(
+                sum(
+                    answer.score
+                    for answer in answers
+                )
+                / len(answers),
+                2,
+            )
+
+        data.append(
+            {
+                "interview_id": str(
+                    interview.id
+                ),
+                "role": interview.role,
+                "level": interview.level,
+                "status": interview.status,
+                "created_at": str(
+                    interview.created_at
+                ),
+                "average_score": average_score,
+            }
+        )
+
+    return data
 
 @router.get("/{interview_id}/report")
 def get_report(
@@ -219,16 +252,49 @@ def get_report(
             / len(answers)
         )
 
+    total_questions = len(
+        interview.questions
+    )
+
+    questions_answered = len(
+        answers
+    )
+
+    completion_percentage = 0
+
+    if total_questions > 0:
+        completion_percentage = round(
+            (
+                questions_answered
+                / total_questions
+            )
+            * 100,
+            2,
+        )
+
     return {
         "interview_id": str(
             interview.id
         ),
+
         "role": interview.role,
+
         "level": interview.level,
+
+        "total_questions":
+            total_questions,
+
+        "questions_answered":
+            questions_answered,
+
+        "completion_percentage":
+            completion_percentage,
+
         "average_score": round(
             average_score,
             2,
         ),
+
         "questions": [
             {
                 "question_id": str(

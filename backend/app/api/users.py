@@ -40,3 +40,28 @@ def sync_user(
         "message": "User created",
         "id": str(user.id),
     }
+
+@router.get("/clerk/{clerk_id}")
+def get_user_by_clerk_id(
+    clerk_id: str,
+    db: Session = Depends(get_db),
+):
+    user = (
+        db.query(User)
+        .filter(
+            User.clerk_id == clerk_id
+        )
+        .first()
+    )
+
+    if not user:
+        return {
+            "error": "User not found"
+        }
+
+    return {
+        "id": str(user.id),
+        "clerk_id": user.clerk_id,
+        "email": user.email,
+        "name": user.name,
+    }

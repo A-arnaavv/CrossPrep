@@ -41,12 +41,26 @@ def submit_answer(
             "error": "Question not found"
         }
 
-    evaluation = (
-        GeminiService.evaluate_answer(
-            question.question_text,
-            answer_text,
+    try:
+        evaluation = (
+            GeminiService.evaluate_answer(
+                question.question_text,
+                answer_text,
+            )
         )
-    )
+
+    except Exception as e:
+        print(
+            "Gemini Evaluation Error:",
+            str(e)
+        )
+
+        evaluation = {
+            "score": 0,
+            "feedback":
+                "AI evaluation temporarily unavailable.",
+            "ideal_answer": "",
+        }
 
     answer_repo = AnswerRepository(
         db

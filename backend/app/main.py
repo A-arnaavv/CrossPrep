@@ -14,6 +14,10 @@ from app.api.dashboard import (
     router as dashboard_router
 )
 
+from app.api.job_match import (
+    router as job_match_router
+)
+
 app = FastAPI(title="InterviewGPT API")
 
 app.add_middleware(
@@ -68,4 +72,10 @@ app.include_router(
     dashboard_router,
     prefix="/api/dashboard",
     tags=["dashboard"],
+)
+
+app.include_router(
+    job_match_router,
+    prefix="/api/job-match",
+    tags=["Job Match"],
 )
