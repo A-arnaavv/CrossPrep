@@ -18,6 +18,10 @@ from app.api.job_match import (
     router as job_match_router
 )
 
+from app.api.routes.coding_interview_router import (
+    router as coding_interview_router
+)
+
 app = FastAPI(title="InterviewGPT API")
 
 app.add_middleware(
@@ -78,4 +82,10 @@ app.include_router(
     job_match_router,
     prefix="/api/job-match",
     tags=["Job Match"],
+)
+
+app.include_router(
+    coding_interview_router,
+    prefix="/api/coding-interviews",
+    tags=["Coding Interviews"],
 )

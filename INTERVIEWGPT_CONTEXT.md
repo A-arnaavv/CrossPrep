@@ -464,3 +464,78 @@ resumes
 interviews
 questions
 answers
+
+# InterviewGPT Status
+
+## Completed
+
+- Authentication (Clerk)
+- User Management
+- Resume Upload
+- Resume Storage (Supabase)
+- Resume Parsing
+- ATS Analysis
+- Resume Recommendations
+- Interview Creation
+- AI Interview Questions
+- AI Answer Evaluation
+- Interview Session
+- Interview Results
+- Detailed Reports
+- Interview History
+- Analytics Dashboard
+- Job Match Analyzer
+
+## Current Database Tables
+
+- users
+- resumes
+- interviews
+- questions
+- answers
+- job_matches
+
+## Current Frontend Pages
+
+/dashboard
+/upload
+/resume
+/interview/create
+/interview/session
+/results
+/report
+/history
+/job-match
+/analytics
+
+## Next Sprint
+
+Coding Interview System
+
+Features:
+
+- Coding Question Generation
+- Monaco Editor
+- Code Submission
+- AI Code Review
+- Test Cases
+- Runtime Analysis
+- Coding Analytics
+
+
+Completed:
+- Coding interview backend model
+- Alembic migration
+- Gemini question generation
+- Gemini code evaluation
+- Monaco editor integration
+- Split-screen LeetCode-style UI
+- Language-specific starter templates
+- Description/Hints tabs
+
+Next:
+- Better question formatting
+- Run Code button
+- Interview history page
+- AI interviewer feedback panel
+- Analytics integration
