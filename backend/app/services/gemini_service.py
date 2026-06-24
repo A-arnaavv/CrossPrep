@@ -17,7 +17,7 @@ class GeminiService:
         resume_text: str,
     ):
         model = genai.GenerativeModel(
-            "gemini-2.5-flash"
+            "gemini-3.1-flash-lite"
         )
 
         prompt = f"""
@@ -162,7 +162,7 @@ Resume:
         projects: list,
     ):
         model = genai.GenerativeModel(
-            "gemini-2.5-flash"
+            "gemini-3.1-flash-lite"
         )
 
         prompt = f"""
@@ -241,7 +241,7 @@ Format:
         answer: str,
     ):
         model = genai.GenerativeModel(
-            "gemini-2.5-flash"
+            "gemini-3.1-flash-lite"
         )
 
         prompt = f"""

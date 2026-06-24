@@ -15,6 +15,14 @@ from app.repositories.coding_interview_repository import (
     CodingInterviewRepository,
 )
 
+from app.repositories.coding_interview_session_repository import (
+    CodingInterviewSessionRepository,
+)
+
+from app.services.code_execution_service import (
+    CodeExecutionService,
+)
+
 router = APIRouter()
 
 
@@ -97,3 +105,223 @@ def get_history(
         }
         for interview in interviews
     ]
+
+@router.post("/start-session")
+def start_session(
+    user_id: UUID,
+    role: str,
+    language: str,
+    db: Session = Depends(get_db),
+):
+
+    repo = (
+        CodingInterviewSessionRepository(
+            db
+        )
+    )
+
+    session = (
+        repo.create_session(
+            user_id=user_id,
+            role=role,
+            language=language,
+        )
+    )
+
+    questions = (
+        CodingInterviewService
+        .generate_interview_set(
+            role=role,
+            language=language,
+        )
+    )
+
+    saved_questions = (
+        repo.create_questions(
+            session.id,
+            questions,
+        )
+    )
+
+    return {
+        "session_id": str(
+            session.id
+        ),
+        "current_question": {
+            "id": str(
+                saved_questions[0].id
+            ),
+            "question_number": 1,
+            "total_questions": 4,
+            "title":
+                saved_questions[0].title,
+            "difficulty":
+                saved_questions[0].difficulty,
+            "question":
+                saved_questions[0].question,
+        },
+    }
+
+@router.post("/session-submit")
+def submit_session_question(
+    session_id: UUID,
+    question_id: UUID,
+    code: str,
+    db: Session = Depends(get_db),
+):
+
+    repo = (
+        CodingInterviewSessionRepository(
+            db
+        )
+    )
+
+    question = (
+        repo.get_question_by_id(
+            question_id
+        )
+    )
+
+    if not question:
+        return {
+            "error":
+                "Question not found"
+        }
+
+    evaluation = (
+        CodingInterviewService
+        .evaluate_code(
+            question=question.question,
+            code=code,
+        )
+    )
+
+    repo.update_question_result(
+        question_id=question.id,
+        code=code,
+        score=evaluation["score"],
+        feedback=evaluation["feedback"],
+    )
+
+    session = (
+        repo.get_session_by_id(
+            session_id
+        )
+    )
+
+    questions = (
+        repo.get_questions_by_session(
+            session_id
+        )
+    )
+
+    total_score = sum(
+        q.score
+        for q in questions
+    )
+
+    next_number = (
+        question.question_number + 1
+    )
+
+    if next_number <= 4:
+
+        repo.update_session_progress(
+            session_id=session.id,
+            current_question=next_number,
+            total_score=total_score,
+            status="in_progress",
+        )
+
+        next_question = (
+            repo.get_next_question(
+                session_id,
+                next_number,
+            )
+        )
+
+        return {
+            "completed": False,
+            "score":
+                evaluation["score"],
+            "feedback":
+                evaluation["feedback"],
+            "next_question": {
+                "id": str(
+                    next_question.id
+                ),
+                "question_number":
+                    next_question.question_number,
+                "title":
+                    next_question.title,
+                "difficulty":
+                    next_question.difficulty,
+                "question":
+                    next_question.question,
+            },
+        }
+
+    repo.update_session_progress(
+        session_id=session.id,
+        current_question=4,
+        total_score=total_score,
+        status="completed",
+    )
+
+    return {
+        "completed": True,
+        "total_score":
+            total_score,
+        "average_score":
+            round(
+                total_score / 4,
+                2,
+            ),
+        "questions": [
+            {
+                "number":
+                    q.question_number,
+                "score":
+                    q.score,
+            }
+            for q in questions
+        ],
+    }
+
+@router.post("/run-code")
+def run_code(
+    language: str,
+    code: str,
+    function_name: str | None = None,
+    test_cases: str | None = None,
+):
+
+    if language == "Python":
+        if function_name and test_cases:
+
+            return (
+                CodeExecutionService
+                .run_python_tests(
+                    code=code,
+                    function_name=function_name,
+                    test_cases=test_cases,
+                )
+            )
+
+        return (
+            CodeExecutionService
+            .run_python(code)
+        )
+
+    if language == "JavaScript":
+
+        return (
+            CodeExecutionService
+            .run_javascript(code)
+        )
+
+    return {
+        "success": False,
+        "output":
+            "Run Code currently supports Python and JavaScript only."
+    }

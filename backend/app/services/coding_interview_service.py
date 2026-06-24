@@ -1,3 +1,4 @@
+from app import models
 import json
 
 import google.generativeai as genai
@@ -16,45 +17,72 @@ class CodingInterviewService:
     def generate_question(
         role: str,
         language: str,
+        difficulty: str = "Medium",
     ):
         model = genai.GenerativeModel(
-            "gemini-2.5-flash"
+            "gemini-3.1-flash-lite"
         )
 
         prompt = f"""
-    Generate ONE realistic coding interview problem.
+Generate ONE realistic LeetCode-style coding interview question.
 
-    Role:
-    {role}
+Role:
+{role}
 
-    Programming Language:
-    {language}
+Programming Language:
+{language}
 
-    Rules:
+Requirements:
 
-    - Write like LeetCode.
-    - Include:
-    - title
-    - difficulty
-    - problem description
-    - constraints
-    - examples
+- Return a realistic coding interview problem.
+- Include a clear description.
+- Include exactly 2 examples.
+- Include 3-5 constraints.
+- Difficulty must be Easy, Medium, or Hard.
+- Do NOT include solutions.
+- Do NOT include hints.
+- Do NOT include pseudocode.
+- Include a realistic function_signature for the selected programming language.
+- The function_signature must match the problem.
+- Example explanations must be short.
+- Each explanation must be maximum 2 sentences.
+- Do NOT include long walkthroughs.
+- starter_code must be valid starter code for the selected programming language.
+- starter_code should include the function signature and a placeholder body.
+- Do NOT include the solution logic.
+- function_name must exactly match the function in starter_code.
+- test_cases must contain exactly 2 sample tests.
+- test_cases.input must be a JSON object.
+- Keys inside test_cases.input must match the function parameters.
+- expected_output must be valid JSON.
+- Do NOT include explanations inside test_cases.
 
-    - Do NOT provide:
-    - solution
-    - pseudocode
-    - implementation hints
-    - algorithm hints
-    - design pattern hints
+Return ONLY valid JSON.
 
-    Return ONLY valid JSON.
-
-    {{
-        "title": "",
-        "difficulty": "",
-        "question": ""
-    }}
-    """
+{{
+    "title": "",
+    "difficulty": "",
+    "description": "",
+    "function_name": "",
+    "starter_code": "",
+    "examples": [
+        {{
+            "input": "",
+            "output": "",
+            "explanation": ""
+        }}
+    ],
+    "constraints": [
+        ""
+    ],
+    "test_cases": [
+        {{
+            "input": {{}},
+            "expected_output": null
+        }}
+    ]
+}}
+"""
 
         try:
 
@@ -74,9 +102,22 @@ class CodingInterviewService:
                 response_text
             )
 
-            return json.loads(
+            result = json.loads(
                 response_text
             )
+            result.setdefault("title", "Untitled Problem")
+            result.setdefault("difficulty", difficulty)
+            result.setdefault("description", "")
+            result.setdefault("examples", [])
+            result.setdefault("constraints", [])
+            result.setdefault(
+                "starter_code",
+                ""
+            )
+            result.setdefault("function_name", "")
+            result.setdefault("test_cases", [])
+
+            return result
 
         except Exception as e:
 
@@ -99,42 +140,98 @@ class CodingInterviewService:
         question: str,
         code: str,
     ):
+        clean_code = code.strip().lower()
+
+        compact_code = (
+            clean_code
+            .replace(" ", "")
+            .replace("\n", "")
+            .replace("\t", "")
+        )
+
+        placeholder_patterns = [
+            "pass",
+            "todo",
+            "fixme",
+            "returnnone",
+            "returnnull",
+            "return[]",
+            "return{}",
+            "return0",
+            "defsolution():pass",
+            "defsolution():return",
+            "defsolution():returnnone",
+            "functionsolution(){}",
+            "functionsolution(){return;}",
+            "functionsolution(){returnnull;}",
+            "publicstaticvoidsolution(){}",
+            "voidsolution(){}",
+        ]
+
+        if (
+            not clean_code
+            or len(clean_code) < 25
+            or any(
+                pattern in compact_code
+                for pattern in placeholder_patterns
+            )
+        ):
+            return {
+                "score": 0,
+                "feedback":
+                    "The submitted code appears to be starter code, placeholder code, or too incomplete to solve the problem."
+            }
+
         model = genai.GenerativeModel(
-            "gemini-2.5-flash"
+            "gemini-3.1-flash-lite"
         )
 
         prompt = f"""
-You are a senior software engineer.
+    You are a strict senior software engineer evaluating a coding interview answer.
 
-Coding Question:
+    Coding Question:
 
-{question}
+    {question}
 
-Candidate Code:
+    Candidate Code:
 
-{code}
+    {code}
 
-Evaluate the code.
+    Evaluation Rules:
 
-Consider:
+    1. If the candidate code is only starter code,
+    empty code,
+    placeholder code,
+    or contains only pass / TODO / empty function,
+    the score MUST be 0.
 
-1. Correctness
-2. Code Quality
-3. Readability
-4. Efficiency
-5. Best Practices
+    2. If the code does not attempt to solve the actual problem,
+    the score MUST be between 0 and 2.
 
-Score should be between 0 and 10.
+    3. If the code has a partial but incomplete solution,
+    the score should be between 3 and 6.
 
-Return ONLY valid JSON.
+    4. If the code mostly solves the problem but misses edge cases,
+    the score should be between 7 and 8.
 
-Format:
+    5. Only give 9 or 10 if the code clearly solves the full problem,
+    handles edge cases,
+    and is efficient.
 
-{{
-    "score": 0,
-    "feedback": ""
-}}
-"""
+    6. Be strict.
+    7. Do NOT reward clean syntax alone.
+    8. Do NOT reward placeholder code.
+    9. Do NOT assume missing logic works.
+
+    Return ONLY valid JSON.
+
+    Format:
+
+    {{
+        "score": 0,
+        "feedback": ""
+    }}
+    """
 
         try:
 
@@ -171,3 +268,38 @@ Format:
                 "feedback":
                     "AI evaluation temporarily unavailable. Please try again later."
             }
+
+    @staticmethod
+    def generate_interview_set(
+        role: str,
+        language: str,
+    ):
+        questions = []
+
+        difficulties = [
+            "Easy",
+            "Medium",
+            "Medium",
+            "Hard",
+        ]
+
+        for difficulty in difficulties:
+
+            question = (
+                CodingInterviewService
+                .generate_question(
+                    role=role,
+                    language=language,
+                    difficulty=difficulty,
+                )
+            )
+
+            question["difficulty"] = (
+                difficulty
+            )
+
+            questions.append(
+                question
+            )
+
+        return questions

@@ -4,3 +4,5 @@ from app.models.interview import Interview
 from app.models.question import Question
 from app.models.answer import Answer
 from app.models.coding_interview import CodingInterview
+from app.models.coding_interview_session import CodingInterviewSession
+from app.models.coding_interview_question import CodingInterviewQuestion
