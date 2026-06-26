@@ -10,6 +10,13 @@ import { useUser } from "@clerk/nextjs";
 
 import Editor from "@monaco-editor/react";
 
+import ProgressDots from "./components/ProgressDots";
+import TestResultsPanel from "./components/TestResultsPanel";
+import InterviewHeader from "./components/InterviewHeader";
+import QuestionPanel from "./components/QuestionPanel";
+import CodeEditorPanel from "./components/CodeEditorPanel";
+import FinalReport from "./components/FinalReport";
+
 export default function CodingInterviewPage() {
 
     const { user } = useUser();
@@ -206,6 +213,8 @@ export default function CodingInterviewPage() {
                 if (
                     response.data.completed
                 ) {
+                    setRunOutput("");
+                    setTestResults([]);
 
                     setInterviewComplete(
                         true
@@ -219,6 +228,8 @@ export default function CodingInterviewPage() {
                 else {
 
                     setResult(null);
+                    setRunOutput("");
+                    setTestResults([]);
 
                     setQuestion(
                         normalizeQuestion(
@@ -396,105 +407,28 @@ public:
     return (
         <div className="h-screen p-4">
 
-            <div
-                className="
-                    flex
-                    items-center
-                    justify-between
-                    mb-6
-                "
-            >
+            {interviewComplete && finalReport && (
 
-                <div>
+                <FinalReport
+                    report={finalReport}
+                    role={role}
+                    language={language}
+                    onRestart={() =>
+                        window.location.reload()
+                    }
+                />
 
-                    <h1 className="text-3xl font-bold">
-                        Coding Interview
-                    </h1>
-
-                    <p className="text-zinc-500 mt-1">
-                        Practice coding interviews with AI evaluation
-                    </p>
-
-                </div>
-
-                <div className="flex items-center gap-3">
-
-                    {question && (
-
-                        <div
-                            className="
-                                px-4
-                                py-2
-                                rounded-lg
-                                bg-zinc-100
-                                font-medium
-                            "
-                        >
-                            {role}
-                        </div>
-
-                    )}
-
-                    {!question && (
-
-                        <input
-                            type="text"
-                            placeholder="Enter Role"
-                            value={role}
-                            onChange={(e) =>
-                                setRole(e.target.value)
-                            }
-                            className="
-                                border
-                                rounded-lg
-                                px-4
-                                py-2
-                                w-64
-                            "
-                        />
-
-                    )}
-
-                    <select
-                        value={language}
-                        onChange={(e) =>
-                            setLanguage(
-                                e.target.value
-                            )
-                        }
-                        className="
-                            border
-                            rounded-lg
-                            px-4
-                            py-2
-                        "
-                    >
-                        <option>Python</option>
-                        <option>JavaScript</option>
-                        <option>Java</option>
-                        <option>C++</option>
-                    </select>
-
-                    {!question && (
-                        <button
-                            onClick={startInterview}
-                            disabled={loading || !role || !dbUserId}
-                            className="
-                            bg-violet-600
-                            text-white
-                            px-5
-                            py-2
-                            rounded-lg
-                        "
-                        >
-                            {loading
-                                ? "Generating 4 questions..."
-                                : "Start Interview"}
-                        </button>
-                    )}
-                </div>
-
-            </div>
+            )}
+            <InterviewHeader
+                question={question}
+                role={role}
+                setRole={setRole}
+                language={language}
+                setLanguage={setLanguage}
+                loading={loading}
+                dbUserId={dbUserId}
+                startInterview={startInterview}
+            />
 
             {loading && !question && (
 
@@ -531,7 +465,7 @@ public:
                 </div>
 
             )}
-            {question && (
+            {question && !interviewComplete && (
 
                 <div
                     className="
@@ -542,535 +476,25 @@ public:
                     "
                 >
 
-                    {/* LEFT PANEL */}
-
-                    <div
-                        className="
-                            border
-                            rounded-2xl
-                            p-6
-                            overflow-y-auto
-                        "
-                    >
-                        <div className="flex gap-2 mb-5">
-
-                            {[1, 2, 3, 4].map(
-                                (step) => (
-
-                                    <div
-                                        key={step}
-                                        className={`
-                                            h-3
-                                            w-3
-                                            rounded-full
-
-                    ${step <= questionNumber
-                                                ? "bg-violet-600"
-                                                : "bg-zinc-300"
-                                            }
-                `}
-                                    />
-
-                                )
-                            )}
-
-                        </div>
-
-                        <h2
-                            className="
-                                text-3xl
-                                font-bold
-                                mt-2
-                            "
-                        >
-                            {question.title}
-                        </h2>
-
-                        <div className="flex gap-2 mb-5">
-
-                            <button
-                                onClick={() =>
-                                    setActiveTab(
-                                        "description"
-                                    )
-                                }
-                                className={`
-                                    px-4
-                                    py-2
-                                    rounded-lg
-
-            ${activeTab ===
-                                        "description"
-                                        ? "bg-violet-600 text-white"
-                                        : "bg-zinc-100"
-                                    }
-        `}
-                            >
-                                Description
-                            </button>
-
-                            <button
-                                onClick={() =>
-                                    setActiveTab(
-                                        "hints"
-                                    )
-                                }
-                                className={`
-                                    px-4
-                                    py-2
-                                    rounded-lg
-
-            ${activeTab ===
-                                        "hints"
-                                        ? "bg-violet-600 text-white"
-                                        : "bg-zinc-100"
-                                    }
-        `}
-                            >
-                                Hints
-                            </button>
-
-                        </div>
-
-                        <div
-                            className={`
-                                inline-flex
-                                items-center
-                                px-3
-                                py-1
-                                rounded-full
-                                text-sm
-                                font-medium
-                                mt-4
-
-        ${question.difficulty === "Easy"
-                                    ? "bg-green-100 text-green-700"
-                                    : question.difficulty === "Hard"
-                                        ? "bg-red-100 text-red-700"
-                                        : "bg-yellow-100 text-yellow-700"
-                                }
-    `}
-                        >
-                            {question.difficulty}
-                        </div>
-                        <span
-                            className="
-                                text-sm
-                                text-zinc-500
-                                ml-3
-                            "
-                        >
-                        </span>
-                        <div className="mt-6">
-
-                            {activeTab === "description" && (
-
-                                <>
-
-                                    <div className="mb-8">
-
-                                        <h3 className="text-lg font-semibold mb-3">
-                                            Description
-                                        </h3>
-
-                                        <p className="leading-8 text-zinc-700">
-                                            {question.description}
-                                        </p>
-
-                                    </div>
-
-                                    <div className="mb-8">
-
-                                        <h3 className="text-lg font-semibold mb-3">
-                                            Examples
-                                        </h3>
-
-                                        {question.examples?.map(
-                                            (
-                                                example: any,
-                                                index: number
-                                            ) => (
-
-                                                <div
-                                                    key={index}
-                                                    className="
-                                border
-                                rounded-xl
-                                p-4
-                                mb-4
-                                bg-zinc-50
-                            "
-                                                >
-
-                                                    <div className="font-semibold mb-2">
-                                                        Example {index + 1}
-                                                    </div>
-
-                                                    <div className="mb-2">
-                                                        Input
-                                                    </div>
-
-                                                    <pre
-                                                        className="
-                                    bg-zinc-900
-                                    text-white
-                                    p-3
-                                    rounded
-                                    overflow-x-auto
-                                "
-                                                    >
-                                                        {example.input}
-                                                    </pre>
-
-                                                    <div className="mt-3 mb-2">
-                                                        Output
-                                                    </div>
-
-                                                    <pre
-                                                        className="
-                                    bg-zinc-900
-                                    text-white
-                                    p-3
-                                    rounded
-                                    overflow-x-auto
-                                "
-                                                    >
-                                                        {example.output}
-                                                    </pre>
-
-                                                    <div className="mt-3 mb-2">
-                                                        Explanation
-                                                    </div>
-
-                                                    <p>
-                                                        {example.explanation}
-                                                    </p>
-
-                                                </div>
-
-                                            )
-                                        )}
-
-                                    </div>
-
-                                    <div>
-
-                                        <h3 className="text-lg font-semibold mb-3">
-                                            Constraints
-                                        </h3>
-
-                                        <ul className="list-disc pl-6 space-y-2">
-
-                                            {question.constraints?.map(
-                                                (
-                                                    item: string,
-                                                    index: number
-                                                ) => (
-
-                                                    <li key={index}>
-                                                        {item}
-                                                    </li>
-
-                                                )
-                                            )}
-
-                                        </ul>
-
-                                    </div>
-
-                                </>
-
-                            )}
-
-                            {activeTab === "hints" && (
-
-                                <div className="text-zinc-500">
-                                    AI hints coming soon...
-                                </div>
-
-                            )}
-
-                        </div>
-
-                    </div>
-
-                    {/* RIGHT PANEL */}
-
-                    <div
-                        className="
-                            border
-                            rounded-2xl
-                            overflow-hidden
-                            flex
-                            flex-col
-                        "
-                    >
-
-                        <div
-                            className="
-                                p-4
-                                border-b
-                                flex
-                                items-center
-                                justify-between
-                                bg-white
-                            "
-                        >
-
-                            <span
-                                className="
-                                    font-semibold
-                                    text-lg
-                                "
-                            >
-                                Solution
-                            </span>
-
-                            <span
-                                className="
-                                    text-sm
-                                    text-zinc-500
-                                "
-                            >
-                                {language}
-                            </span>
-
-                        </div>
-
-
-                        <div
-                            className="
-                                flex-1
-                                min-h-0
-                            "
-                        >
-
-                            <Editor
-                                height="100%"
-                                language={
-                                    editorLanguageMap[
-                                    language as keyof typeof editorLanguageMap
-                                    ]
-                                }
-                                value={code}
-                                onChange={(value) =>
-                                    setCode(
-                                        value || ""
-                                    )
-                                }
-                                theme="vs-dark"
-                            />
-
-                        </div>
-                        {testResults.length > 0 && (
-
-                            <div
-                                className="
-                                    border-t
-                                    bg-zinc-950
-                                    text-white
-                                    p-4
-                                    max-h-60
-                                    overflow-y-auto
-                                    text-sm
-                                "
-                            >
-
-                                <div className="text-zinc-400 mb-3">
-                                    Test Results
-                                </div>
-
-                                <div className="space-y-3">
-
-                                    {testResults.map(
-                                        (
-                                            item: any,
-                                            index: number
-                                        ) => (
-
-                                            <div
-                                                key={index}
-                                                className="
-                            border
-                            border-zinc-800
-                            rounded-lg
-                            p-3
-                        "
-                                            >
-
-                                                <div className="font-semibold mb-2">
-
-                                                    {item.passed
-                                                        ? "✅ Passed"
-                                                        : "❌ Failed"}
-
-                                                </div>
-
-                                                <div
-                                                    className="
-                                grid
-                                grid-cols-2
-                                gap-4
-                            "
-                                                >
-
-                                                    <div>
-
-                                                        <div className="text-zinc-400 mb-1">
-                                                            Expected
-                                                        </div>
-
-                                                        <pre>
-                                                            {JSON.stringify(
-                                                                item.expected_output,
-                                                                null,
-                                                                2
-                                                            )}
-                                                        </pre>
-
-                                                    </div>
-
-                                                    <div>
-
-                                                        <div className="text-zinc-400 mb-1">
-                                                            Actual
-                                                        </div>
-
-                                                        <pre>
-                                                            {JSON.stringify(
-                                                                item.actual_output,
-                                                                null,
-                                                                2
-                                                            )}
-                                                        </pre>
-
-                                                    </div>
-
-                                                </div>
-
-                                            </div>
-
-                                        )
-                                    )}
-
-                                </div>
-
-                            </div>
-
-                        )}
-                        {runOutput && testResults.length === 0 && (
-
-                            <div
-                                className="
-                                    border-t
-                                    bg-zinc-950
-                                    text-white
-                                    p-4
-                                    max-h-52
-                                    overflow-y-auto
-                                    font-mono
-                                    text-sm
-                                "
-                            >
-                                <div className="text-zinc-400 mb-2">
-                                    Console Output
-                                </div>
-
-                                <pre className="whitespace-pre-wrap">
-                                    {runOutput}
-                                </pre>
-                            </div>
-
-                        )}
-                        <div
-                            className="
-                                p-4
-                                border-t
-                                flex
-                                justify-end
-                                gap-3
-                            "
-                        >
-                            <button
-                                onClick={runCode}
-                                className="
-                                    border
-                                    px-6
-                                    py-3
-                                    rounded-lg
-                                "
-                            >
-                                Run Code
-                            </button>
-                            <button
-                                onClick={
-                                    submitCode
-                                }
-                                disabled={
-                                    loading ||
-                                    !code
-                                }
-                                className="
-                                    bg-violet-600
-                                    text-white
-                                    px-6
-                                    py-3
-                                    rounded-lg
-                                "
-                            >
-                                {loading
-                                    ? "Evaluating..."
-                                    : "Submit Code"}
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            )}
-            {result && (
-
-                <div
-                    className="
-            mt-4
-            border
-            rounded-2xl
-            p-6
-            bg-zinc-50
-        "
-                >
-
-                    <div className="flex items-center justify-between">
-
-                        <h2 className="text-xl font-bold">
-                            Evaluation
-                        </h2>
-
-                        <div
-                            className="
-                    text-3xl
-                    font-bold
-                    text-violet-600
-                "
-                        >
-                            {result.score}/10
-                        </div>
-
-                    </div>
-
-                    <div className="mt-4">
-
-                        <h3 className="font-semibold">
-                            Feedback
-                        </h3>
-
-                        <p className="mt-2 text-zinc-700">
-                            {result.feedback}
-                        </p>
-
-                    </div>
+                    <QuestionPanel
+                        question={question}
+                        activeTab={activeTab}
+                        setActiveTab={setActiveTab}
+                        questionNumber={questionNumber}
+                        totalQuestions={totalQuestions}
+                    />
+
+                    <CodeEditorPanel
+                        language={language}
+                        code={code}
+                        setCode={setCode}
+                        editorLanguageMap={editorLanguageMap}
+                        testResults={testResults}
+                        runOutput={runOutput}
+                        loading={loading}
+                        runCode={runCode}
+                        submitCode={submitCode}
+                    />
 
                 </div>
 
