@@ -181,3 +181,28 @@ class CodingInterviewSessionRepository:
             )
             .first()
         )
+
+    def save_final_report(
+        self,
+        session_id: UUID,
+        summary: str,
+        strengths: list,
+        improvements: list,
+        recommendations: list,
+    ):
+        session = self.get_session_by_id(
+            session_id
+        )
+
+        if not session:
+            return None
+
+        session.summary = summary
+        session.strengths = strengths
+        session.improvements = improvements
+        session.recommendations = recommendations
+
+        self.db.commit()
+        self.db.refresh(session)
+
+        return session

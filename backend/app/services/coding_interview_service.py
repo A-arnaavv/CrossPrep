@@ -150,7 +150,6 @@ Return ONLY valid JSON.
         )
 
         placeholder_patterns = [
-            "pass",
             "todo",
             "fixme",
             "returnnone",
@@ -303,3 +302,99 @@ Return ONLY valid JSON.
             )
 
         return questions
+
+    @staticmethod
+    def generate_final_report(
+        role: str,
+        language: str,
+        total_score: int,
+        average_score: float,
+        questions: list,
+    ):
+        model = genai.GenerativeModel(
+            "gemini-3.1-flash-lite"
+        )
+
+        prompt = f"""
+    You are an AI coding interview evaluator.
+
+    Generate a final coding interview report.
+
+    Role:
+    {role}
+
+    Language:
+    {language}
+
+    Total Score:
+    {total_score}/40
+
+    Average Score:
+    {average_score}/10
+
+    Question Scores:
+    {questions}
+
+    Return ONLY valid JSON.
+
+    Format:
+    {{
+        "summary": "",
+        "strengths": [
+            ""
+        ],
+        "improvements": [
+            ""
+        ],
+        "recommendations": [
+            ""
+        ]
+    }}
+
+    Rules:
+    - Keep summary concise.
+    - Strengths should be specific.
+    - Improvements should be practical.
+    - Recommendations should be actionable.
+    - Do not be overly harsh.
+    - Do not mention that you are an AI.
+    """
+
+        try:
+            response = model.generate_content(
+                prompt
+            )
+
+            response_text = (
+                response.text
+                .replace("```json", "")
+                .replace("```", "")
+                .strip()
+            )
+
+            return json.loads(
+                response_text
+            )
+
+        except Exception as e:
+            print(
+                "Final Report Generation Error:",
+                str(e)
+            )
+
+            return {
+                "summary":
+                    "The coding interview has been completed. Review the question scores to identify your strongest and weakest areas.",
+                "strengths": [
+                    "Completed a multi-question coding interview round.",
+                    "Practiced solving problems in a timed interview-style environment."
+                ],
+                "improvements": [
+                    "Review low-scoring questions.",
+                    "Practice edge cases and complexity analysis."
+                ],
+                "recommendations": [
+                    "Redo similar problems.",
+                    "Focus on correctness before optimization."
+                ],
+            }

@@ -267,26 +267,54 @@ def submit_session_question(
         total_score=total_score,
         status="completed",
     )
+    average_score = round(
+        total_score / 4,
+        2,
+    )
+
+    question_results = [
+        {
+            "number": q.question_number,
+            "score": q.score,
+        }
+        for q in questions
+    ]
+
+    ai_report = (
+    CodingInterviewService.generate_final_report(
+        role=session.role,
+        language=session.language,
+        total_score=total_score,
+        average_score=average_score,
+        questions=question_results,
+    )
+    )
+    repo.save_final_report(
+        session_id=session.id,
+        summary=ai_report["summary"],
+        strengths=ai_report["strengths"],
+        improvements=ai_report["improvements"],
+        recommendations=ai_report["recommendations"],
+    )
 
     return {
-        "completed": True,
-        "total_score":
-            total_score,
-        "average_score":
-            round(
-                total_score / 4,
-                2,
-            ),
-        "questions": [
-            {
-                "number":
-                    q.question_number,
-                "score":
-                    q.score,
-            }
-            for q in questions
-        ],
-    }
+    "completed": True,
+    "total_score": total_score,
+    "average_score": average_score,
+    "questions": question_results,
+
+    "summary":
+        ai_report["summary"],
+
+    "strengths":
+        ai_report["strengths"],
+
+    "improvements":
+        ai_report["improvements"],
+
+    "recommendations":
+        ai_report["recommendations"],
+}
 
 @router.post("/run-code")
 def run_code(
@@ -324,4 +352,61 @@ def run_code(
         "success": False,
         "output":
             "Run Code currently supports Python and JavaScript only."
+    }
+
+@router.get("/session-report/{session_id}")
+def get_session_report(
+    session_id: UUID,
+    db: Session = Depends(get_db),
+):
+
+    repo = (
+        CodingInterviewSessionRepository(
+            db
+        )
+    )
+
+    session = (
+        repo.get_session_by_id(
+            session_id
+        )
+    )
+
+    if not session:
+        return {
+            "error": "Session not found"
+        }
+
+    questions = (
+        repo.get_questions_by_session(
+            session_id
+        )
+    )
+
+    return {
+        "session_id": str(session.id),
+        "role": session.role,
+        "language": session.language,
+        "status": session.status,
+        "total_score": session.total_score,
+        "average_score": round(
+            session.total_score / 4,
+            2,
+        ),
+        "summary": session.summary,
+        "strengths": session.strengths or [],
+        "improvements": session.improvements or [],
+        "recommendations": session.recommendations or [],
+        "questions": [
+            {
+                "number": q.question_number,
+                "title": q.title,
+                "difficulty": q.difficulty,
+                "score": q.score,
+                "feedback": q.feedback,
+                "code": q.code,
+                "completed": q.completed,
+            }
+            for q in questions
+        ],
     }

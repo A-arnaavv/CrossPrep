@@ -404,11 +404,10 @@ public:
             return item;
         };
 
-    return (
-        <div className="h-screen p-4">
+    if (interviewComplete && finalReport) {
 
-            {interviewComplete && finalReport && (
-
+        return (
+            <div className="h-screen p-4">
                 <FinalReport
                     report={finalReport}
                     role={role}
@@ -417,8 +416,14 @@ public:
                         window.location.reload()
                     }
                 />
+            </div>
+        );
 
-            )}
+    }
+
+    return (
+        <div className="h-screen p-4">
+
             <InterviewHeader
                 question={question}
                 role={role}

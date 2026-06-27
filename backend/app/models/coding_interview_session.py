@@ -10,6 +10,8 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
+from sqlalchemy import Text
+from sqlalchemy.dialects.postgresql import JSONB
 
 from app.database.base import Base
 
@@ -43,6 +45,26 @@ class CodingInterviewSession(Base):
     current_question: Mapped[int] = mapped_column(
         Integer,
         default=1,
+    )
+
+    summary: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    strengths: Mapped[list | None] = mapped_column(
+        JSONB,
+        nullable=True,
+    )
+
+    improvements: Mapped[list | None] = mapped_column(
+        JSONB,
+        nullable=True,
+    )
+
+    recommendations: Mapped[list | None] = mapped_column(
+        JSONB,
+        nullable=True,
     )
 
     created_at: Mapped[datetime] = mapped_column(
