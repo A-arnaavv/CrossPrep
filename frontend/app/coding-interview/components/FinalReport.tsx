@@ -1,5 +1,9 @@
+import type {
+    CodingInterviewReport,
+} from "../types";
+
 type FinalReportProps = {
-    report: any;
+    report: CodingInterviewReport;
     role: string;
     language: string;
     onRestart: () => void;
@@ -227,8 +231,8 @@ export default function FinalReport({
 
                 {report.questions?.map(
                     (
-                        item: any,
-                        index: number
+                        item,
+                        index
                     ) => {
                         const questionScore =
                             Number(item.score || 0);

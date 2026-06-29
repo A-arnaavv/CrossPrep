@@ -1,5 +1,9 @@
+import type {
+    CodeTestResult,
+} from "../types";
+
 type TestResultsPanelProps = {
-    testResults: any[];
+    testResults: CodeTestResult[];
     runOutput: string;
 };
 

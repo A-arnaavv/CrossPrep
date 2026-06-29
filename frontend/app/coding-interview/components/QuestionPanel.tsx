@@ -1,7 +1,10 @@
 import ProgressDots from "./ProgressDots";
+import type {
+    CodingInterviewQuestion,
+} from "../types";
 
 type QuestionPanelProps = {
-    question: any;
+    question: CodingInterviewQuestion;
     activeTab: string;
     setActiveTab: (value: string) => void;
     questionNumber: number;
@@ -98,7 +101,7 @@ export default function QuestionPanel({
                             </h3>
 
                             {question.examples?.map(
-                                (example: any, index: number) => (
+                                (example, index: number) => (
                                     <div
                                         key={index}
                                         className="

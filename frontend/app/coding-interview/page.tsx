@@ -17,6 +17,12 @@ import QuestionPanel from "./components/QuestionPanel";
 import CodeEditorPanel from "./components/CodeEditorPanel";
 import FinalReport from "./components/FinalReport";
 
+import type {
+    CodingInterviewQuestion,
+    CodingInterviewReport,
+    CodeTestResult,
+} from "./types";
+
 export default function CodingInterviewPage() {
 
     const { user } = useUser();
@@ -31,7 +37,7 @@ export default function CodingInterviewPage() {
         useState("Python");
 
     const [question, setQuestion] =
-        useState<any>(null);
+        useState<CodingInterviewQuestion | null>(null);
 
     const [code, setCode] =
         useState("");
@@ -61,13 +67,13 @@ export default function CodingInterviewPage() {
         useState(false);
 
     const [finalReport, setFinalReport] =
-        useState<any>(null);
+        useState<CodingInterviewReport | null>(null);
 
     const [runOutput, setRunOutput] =
         useState("");
 
     const [testResults, setTestResults] =
-        useState<any[]>([]);
+        useState<CodeTestResult[]>([]);
 
     const startInterview =
         async () => {
@@ -380,29 +386,30 @@ public:
 
     };
 
-    const normalizeQuestion =
-        (item: any) => {
+    const normalizeQuestion = (
+        item: CodingInterviewQuestion
+    ): CodingInterviewQuestion => {
 
-            if (
-                typeof item.question === "string"
-            ) {
-                try {
-                    const parsed =
-                        JSON.parse(
-                            item.question
-                        );
+        if (
+            typeof item.question === "string"
+        ) {
+            try {
+                const parsed =
+                    JSON.parse(
+                        item.question
+                    );
 
-                    return {
-                        ...item,
-                        ...parsed,
-                    };
-                } catch {
-                    return item;
-                }
+                return {
+                    ...item,
+                    ...parsed,
+                };
+            } catch {
+                return item;
             }
+        }
 
-            return item;
-        };
+        return item;
+    };
 
     if (interviewComplete && finalReport) {
 

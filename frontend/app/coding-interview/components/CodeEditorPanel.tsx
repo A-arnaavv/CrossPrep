@@ -2,12 +2,16 @@ import Editor from "@monaco-editor/react";
 
 import TestResultsPanel from "./TestResultsPanel";
 
+import type {
+    CodeTestResult,
+} from "../types";
+
 type CodeEditorPanelProps = {
     language: string;
     code: string;
     setCode: (value: string) => void;
     editorLanguageMap: Record<string, string>;
-    testResults: any[];
+    testResults: CodeTestResult[];
     runOutput: string;
     loading: boolean;
     runCode: () => void;

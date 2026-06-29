@@ -71,13 +71,9 @@ export default function InterviewHistoryCard({
                 onClick={() => {
                     if (!interviewId) return;
 
-                    localStorage.setItem(
-                        "interview_id",
-                        interviewId
-                    );
-
                     window.location.href =
-                        "/report";
+                        `/coding-interview/report/${interviewId}`;
+
                 }}
                 className="mt-6 bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl"
             >
