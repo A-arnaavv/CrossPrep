@@ -42,9 +42,6 @@ export default function CodingInterviewPage() {
     const [code, setCode] =
         useState("");
 
-    const [result, setResult] =
-        useState<any>(null);
-
     const [loading, setLoading] =
         useState(false);
 
@@ -129,8 +126,6 @@ export default function CodingInterviewPage() {
                     language as keyof typeof starterTemplates
                     ]
                 );
-
-                setResult(null);
 
             } catch (error) {
 
@@ -233,7 +228,6 @@ export default function CodingInterviewPage() {
                 }
                 else {
 
-                    setResult(null);
                     setRunOutput("");
                     setTestResults([]);
 

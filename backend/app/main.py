@@ -22,6 +22,8 @@ from app.api.routes.coding_interview_router import (
     router as coding_interview_router
 )
 
+from app.api import career_coach
+
 app = FastAPI(title="InterviewGPT API")
 
 app.add_middleware(
@@ -31,7 +33,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 @app.get("/")
 def root():
@@ -88,4 +89,10 @@ app.include_router(
     coding_interview_router,
     prefix="/api/coding-interviews",
     tags=["Coding Interviews"],
+)
+
+app.include_router(
+    career_coach.router,
+    prefix="/api/career-coach",
+    tags=["Career Coach"],
 )

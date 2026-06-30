@@ -1,5 +1,9 @@
+import type {
+    CodingInterviewQuestion,
+} from "../types";
+
 type InterviewHeaderProps = {
-    question: any;
+    question: CodingInterviewQuestion | null;
     role: string;
     setRole: (value: string) => void;
     language: string;

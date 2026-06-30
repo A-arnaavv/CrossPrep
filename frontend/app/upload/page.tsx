@@ -4,6 +4,12 @@ import { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
 import { api } from "@/lib/api";
 import ATSScoreCard from "@/components/resume/ATSScoreCard";
+import type {
+    ResumeAnalysis,
+    ResumeProject,
+    ResumeExperience,
+    ResumeEducation,
+} from "./types";
 
 export default function UploadPage() {
     const { user } = useUser();
@@ -18,7 +24,7 @@ export default function UploadPage() {
         useState("");
 
     const [analysis, setAnalysis] =
-        useState<any>(null);
+        useState<ResumeAnalysis | null>(null);
 
     const [activeTab, setActiveTab] =
         useState("overview");
@@ -416,7 +422,7 @@ export default function UploadPage() {
 
                                 {analysis.projects?.map(
                                     (
-                                        project: any,
+                                        project: ResumeProject,
                                         index: number
                                     ) => (
                                         <div
@@ -484,7 +490,7 @@ export default function UploadPage() {
 
                                 {analysis.experience?.map(
                                     (
-                                        item: any,
+                                        item: ResumeExperience,
                                         index: number
                                     ) => (
                                         <div
@@ -535,7 +541,7 @@ export default function UploadPage() {
 
                                 {analysis.education?.map(
                                     (
-                                        item: any,
+                                        item: ResumeEducation,
                                         index: number
                                     ) => (
                                         <div
