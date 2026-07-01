@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from fastapi import APIRouter
 from fastapi import Depends
 
@@ -17,6 +15,14 @@ from app.services.career_coach_service import (
 
 from app.repositories.resume_repository import (
     ResumeRepository,
+)
+
+from app.repositories.coding_interview_session_repository import (
+    CodingInterviewSessionRepository,
+)
+
+from app.repositories.interview_repository import (
+    InterviewRepository,
 )
 
 router = APIRouter()
@@ -77,10 +83,101 @@ def get_career_coach_report(
 
         resume_data = {}
 
-    interview_data = []
+    coding_repo = CodingInterviewSessionRepository(
+        db
+    )
+
+    coding_sessions = (
+        coding_repo.get_sessions_by_user(
+            user.id
+        )
+    )
+
+    interview_repo = InterviewRepository(
+        db
+    )
+
+    behavioral_interviews = (
+        interview_repo.get_by_user(
+            user.id
+        )
+    )
+
+    interview_data = [
+        {
+            "type": "coding",
+            "role": session.role,
+            "language": session.language,
+            "status": session.status,
+            "total_score": session.total_score,
+            "summary": session.summary,
+            "strengths": session.strengths,
+            "improvements": session.improvements,
+        }
+        for session in coding_sessions
+    ]
+
+    interview_data.extend(
+    [
+        {
+            "type": "behavioral",
+            "role": interview.role,
+            "level": interview.level,
+            "status": interview.status,
+        }
+        for interview in behavioral_interviews
+    ]
+    )
+
+    total_resumes = 1 if latest_resume else 0
+
+    total_interviews = len(
+        behavioral_interviews
+    ) + len(
+        coding_sessions
+    )
+
+    coding_scores = [
+        session.total_score / 4
+        for session in coding_sessions
+        if session.status == "completed"
+    ]
+
+    average_score = 0
+
+    if coding_scores:
+        average_score = (
+            sum(coding_scores)
+            / len(coding_scores)
+        )
+
+    completed_interviews = len(
+        [
+            session
+            for session in coding_sessions
+            if session.status == "completed"
+        ]
+    )
+
+    completion_percentage = 0
+
+    if total_interviews:
+        completion_percentage = (
+            completed_interviews
+            / total_interviews
+        ) * 100
 
     dashboard_stats = {
-        "message": "Career coach initial version"
+        "total_resumes": total_resumes,
+        "total_interviews": total_interviews,
+        "average_score": round(
+            average_score,
+            2,
+        ),
+        "completion_percentage": round(
+            completion_percentage,
+            2,
+        ),
     }
 
     return (
@@ -91,3 +188,5 @@ def get_career_coach_report(
             dashboard_stats=dashboard_stats,
         )
     )
+
+   

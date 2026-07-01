@@ -12,7 +12,6 @@ from app.models.coding_interview_question import (
     CodingInterviewQuestion,
 )
 
-
 class CodingInterviewSessionRepository:
 
     def __init__(
@@ -206,3 +205,20 @@ class CodingInterviewSessionRepository:
         self.db.refresh(session)
 
         return session
+
+    def get_sessions_by_user(
+        self,
+        user_id,
+    ):
+        return (
+            self.db.query(
+            CodingInterviewSession
+        )
+        .filter(
+            CodingInterviewSession.user_id == user_id
+        )
+        .order_by(
+            CodingInterviewSession.created_at.desc()
+        )
+        .all()
+    )
