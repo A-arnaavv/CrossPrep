@@ -9,7 +9,9 @@ import { api } from "@/lib/api";
 import type {
     DashboardStats,
     DashboardActivity,
+    CareerCoachReport,
 } from "./components/types";
+
 
 import WelcomeBanner from "./components/WelcomeBanner";
 import StatsCards from "./components/StatsCards";
@@ -36,6 +38,14 @@ export default function DashboardPage() {
         useState<DashboardActivity[]>([]);
 
     const [loading, setLoading] =
+        useState(true);
+
+    const [careerCoach, setCareerCoach] =
+        useState<CareerCoachReport | null>(
+            null
+        );
+
+    const [careerCoachLoading, setCareerCoachLoading] =
         useState(true);
 
     useEffect(() => {
@@ -67,12 +77,22 @@ export default function DashboardPage() {
                         activityResponse.data
                     );
 
+                    const coachResponse =
+                        await api.get(
+                            `/api/career-coach/${user.id}`
+                        );
+
+                    setCareerCoach(
+                        coachResponse.data
+                    );
+
                 } catch (error) {
                     console.error(
                         error
                     );
                 } finally {
                     setLoading(false);
+                    setCareerCoachLoading(false);
                 }
             };
 
@@ -108,7 +128,8 @@ export default function DashboardPage() {
                 />
 
                 <AICoach
-                    stats={stats}
+                    report={careerCoach}
+                    loading={careerCoachLoading}
                 />
 
                 <RecentInterviews
