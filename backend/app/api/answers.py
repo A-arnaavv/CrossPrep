@@ -19,6 +19,11 @@ from app.services.gemini_service import (
     GeminiService,
 )
 
+from sqlalchemy import func
+
+from app.models.answer import Answer
+from app.models.question import Question
+
 router = APIRouter()
 
 
@@ -73,10 +78,54 @@ def submit_answer(
         feedback=evaluation["feedback"],
         ideal_answer=evaluation["ideal_answer"],
     )
+    interview = question.interview
+
+    total_questions = (
+        db.query(Question)
+        .filter(
+            Question.interview_id
+            == interview.id
+        )
+        .count()
+    )
+
+    answered_questions = (
+        db.query(
+            func.count(
+                func.distinct(
+                    Answer.question_id
+                )
+            )
+        )
+        .join(
+            Question,
+            Answer.question_id
+            == Question.id,
+        )
+        .filter(
+            Question.interview_id
+            == interview.id
+        )
+        .scalar()
+        or 0
+    )
+
+    if (
+        total_questions > 0
+        and answered_questions
+        >= total_questions
+    ):
+        interview.status = "completed"
+    else:
+        interview.status = "in_progress"
+
+    db.commit()
+    db.refresh(interview)
 
     return {
-        "answer_id": str(answer.id),
-        "score": answer.score,
-        "feedback": answer.feedback,
-        "ideal_answer": answer.ideal_answer,
-    }
+    "answer_id": str(answer.id),
+    "score": answer.score,
+    "feedback": answer.feedback,
+    "ideal_answer": answer.ideal_answer,
+    "interview_status": interview.status,
+}

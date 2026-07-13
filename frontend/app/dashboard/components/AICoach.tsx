@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+
 import type {
     CareerCoachReport,
 } from "./types";
@@ -11,6 +15,21 @@ export default function AICoach({
     report,
     loading,
 }: AICoachProps) {
+
+    const [completedTasks, setCompletedTasks] =
+        useState<number[]>([]);
+
+    const toggleTask =
+        (index: number) => {
+            setCompletedTasks((current) =>
+                current.includes(index)
+                    ? current.filter(
+                        (item) => item !== index
+                    )
+                    : [...current, index]
+            );
+        };
+
     if (loading) {
         return (
             <div className="bg-white border rounded-3xl p-6 shadow-sm">
@@ -48,10 +67,14 @@ export default function AICoach({
                     <p className="text-zinc-500 mt-1">
                         Personalized guidance from your resume and interview data.
                     </p>
-                </div>
-
-                <div className="text-3xl">
-                    🤖
+                    {report.created_at && (
+                        <p className="text-xs text-zinc-400 mt-2">
+                            Last updated:{" "}
+                            {new Date(
+                                report.created_at
+                            ).toLocaleString()}
+                        </p>
+                    )}
                 </div>
 
             </div>
@@ -96,22 +119,51 @@ export default function AICoach({
             <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-5">
 
                 <div>
+
                     <h3 className="font-semibold">
-                        Strengths
+                        Top Strengths
                     </h3>
 
-                    <ul className="mt-3 space-y-2 text-zinc-600">
+                    <div className="mt-4 space-y-4">
+
                         {report.strengths?.slice(0, 3).map(
                             (
                                 item,
                                 index
                             ) => (
-                                <li key={index}>
-                                    ✓ {item}
-                                </li>
+
+                                <div key={index}>
+
+                                    <div className="flex justify-between mb-2">
+
+                                        <span className="text-zinc-700">
+                                            {item}
+                                        </span>
+
+                                        <span className="text-sm text-violet-600 font-semibold">
+                                            Expert
+                                        </span>
+
+                                    </div>
+
+                                    <div className="h-2 rounded-full bg-zinc-100 overflow-hidden">
+
+                                        <div
+                                            className="h-full rounded-full bg-emerald-500"
+                                            style={{
+                                                width: `${90 - index * 10}%`,
+                                            }}
+                                        />
+
+                                    </div>
+
+                                </div>
+
                             )
                         )}
-                    </ul>
+
+                    </div>
+
                 </div>
 
                 <div>
@@ -141,18 +193,70 @@ export default function AICoach({
                     Weekly Plan
                 </h3>
 
-                <ul className="mt-3 space-y-2 text-zinc-600">
-                    {report.weekly_plan?.slice(0, 3).map(
+                <div className="mt-4 space-y-3">
+
+                    {report.weekly_plan?.slice(0, 4).map(
                         (
                             item,
                             index
                         ) => (
-                            <li key={index}>
-                                {index + 1}. {item}
-                            </li>
+
+                            <button
+                                key={index}
+                                onClick={() =>
+                                    toggleTask(index)
+                                }
+                                className="
+                                    w-full
+                                    text-left
+                                    flex
+                                    items-start
+                                    gap-3
+                                    rounded-2xl
+                                    bg-zinc-50
+                                    p-4
+                                    hover:bg-violet-50
+                                    transition
+                                "
+                            >
+
+                                <div
+                                    className="
+                            h-8
+                            w-8
+                            flex
+                            items-center
+                            justify-center
+                            rounded-full
+                            bg-violet-600
+                            text-white
+                            text-sm
+                            font-bold
+                        "
+                                >
+                                    {completedTasks.includes(index)
+                                        ? "✓"
+                                        : index + 1}
+                                </div>
+
+                                <p
+                                    className={`
+                                            leading-6
+                                            ${completedTasks.includes(index)
+                                            ? "text-zinc-400 line-through"
+                                            : "text-zinc-700"
+                                        }
+    `}
+                                >
+                                    {item}
+                                </p>
+
+                            </button>
+
                         )
                     )}
-                </ul>
+
+                </div>
 
             </div>
             <div className="mt-6 border-t pt-5">

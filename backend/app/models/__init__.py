@@ -6,3 +6,4 @@ from app.models.answer import Answer
 from app.models.coding_interview import CodingInterview
 from app.models.coding_interview_session import CodingInterviewSession
 from app.models.coding_interview_question import CodingInterviewQuestion
+from app.models.career_coach_report import CareerCoachReport

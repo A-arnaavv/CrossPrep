@@ -8,6 +8,9 @@ from app.repositories.user_repository import UserRepository
 from app.repositories.resume_repository import ResumeRepository
 from app.repositories.coding_interview_session_repository import CodingInterviewSessionRepository
 from app.repositories.interview_repository import InterviewRepository
+from app.repositories.career_coach_report_repository import (
+    CareerCoachReportRepository,
+)
 
 genai.configure(
     api_key=settings.GEMINI_API_KEY
@@ -254,8 +257,47 @@ Rules:
             ),
         }
 
-        return CareerCoachService.generate_coach_report(
+        report = CareerCoachService.generate_coach_report(
             resume_data=resume_data,
             interview_data=interview_data,
             dashboard_stats=dashboard_stats,
         )
+
+        report_repo = CareerCoachReportRepository(
+            db
+        )
+
+        recent_report = (
+            report_repo.get_recent_by_user(
+                user.id
+            )
+        )
+
+        if recent_report:
+            return {
+                "career_readiness":
+                    recent_report.career_readiness,
+                "summary":
+                    recent_report.summary,
+                "strengths":
+                    recent_report.strengths,
+                "focus_areas":
+                    recent_report.focus_areas,
+                "weekly_plan":
+                    recent_report.weekly_plan,
+                "target_roles":
+                    recent_report.target_roles,
+                "created_at":
+                    str(recent_report.created_at),
+            }
+
+        saved_report = report_repo.create(
+            user_id=user.id,
+            report=report,
+        )
+
+        report["created_at"] = str(
+            saved_report.created_at
+        )
+
+        return report

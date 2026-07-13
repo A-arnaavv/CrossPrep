@@ -6,10 +6,14 @@ export type DashboardStats = {
 };
 
 export type DashboardActivity = {
+    type?: "coding" | "behavioral";
     role?: string;
     level?: string;
     status?: string;
     created_at?: string;
+    average_score?: number;
+    coding_score: number | null;
+    behavioral_score: number | null;
 };
 
 export type CareerCoachTargetRole = {
@@ -25,4 +29,5 @@ export type CareerCoachReport = {
     focus_areas: string[];
     weekly_plan: string[];
     target_roles: CareerCoachTargetRole[];
+    created_at?: string;
 };

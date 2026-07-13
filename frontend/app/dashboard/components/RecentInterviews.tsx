@@ -1,127 +1,246 @@
-import type { DashboardActivity } from "./types";
+import {
+    CheckCircle2,
+    Code2,
+    MessageSquareText,
+} from "lucide-react";
+
+import type {
+    DashboardActivity,
+} from "./types";
 
 type RecentInterviewsProps = {
     activity: DashboardActivity[];
 };
 
-function getStatusColor(
+function getStatusStyle(
     status?: string
 ) {
     if (status === "completed") {
-        return "bg-green-100 text-green-700";
+        return "bg-emerald-50 text-emerald-700";
     }
 
     if (status === "in_progress") {
-        return "bg-yellow-100 text-yellow-700";
+        return "bg-amber-50 text-amber-700";
     }
 
-    return "bg-zinc-100 text-zinc-600";
+    return "bg-slate-100 text-slate-600";
 }
 
 export default function RecentInterviews({
     activity,
 }: RecentInterviewsProps) {
     return (
-        <div className="mt-8 bg-white border rounded-3xl p-6 shadow-sm">
+        <section
+            className="
+                h-full
+                min-h-0
+                overflow-hidden
+                rounded-3xl
+                border
+                border-slate-100
+                bg-white
+                p-4
+                shadow-sm
+                flex
+                flex-col
+            "
+        >
+            <div>
+                <h2 className="text-2xl font-bold text-slate-950">
+                    Recent Activity
+                </h2>
 
-            <div className="flex items-center justify-between">
-
-                <div>
-                    <h2 className="text-2xl font-bold">
-                        Recent Interviews
-                    </h2>
-
-                    <p className="text-zinc-500 mt-1">
-                        Review your latest practice sessions.
-                    </p>
-                </div>
-
+                <p className="mt-1 text-sm text-slate-500">
+                    Your latest coding and behavioral sessions.
+                </p>
             </div>
 
             {activity.length === 0 ? (
+                <div
+                    className="
+                        mt-4
+                        flex
+                        min-h-[280px]
+                        items-center
+                        justify-center
+                        rounded-2xl
+                        bg-slate-50
+                        p-3
+                        text-center
+                    "
+                >
+                    <div>
+                        <p className="font-semibold text-slate-700">
+                            No recent activity
+                        </p>
 
-                <div className="mt-6 rounded-2xl bg-zinc-50 p-6 text-zinc-500">
-                    No recent interviews yet. Start a coding or behavioral
-                    interview to see your history here.
+                        <p className="mt-1 text-sm text-slate-400">
+                            Complete an interview to see it here.
+                        </p>
+                    </div>
                 </div>
-
             ) : (
+                <>
+                    <div
+                        className="
+                            mt-4
+                            space-y-3
+                            flex-1
+                            min-h-0
+                            overflow-y-auto
+                            pr-1
+                        "
+                    >
+                        {activity
+                            .slice(0, 4)
+                            .map(
+                                (
+                                    item,
+                                    index
+                                ) => {
+                                    const isCoding =
+                                        item.type ===
+                                        "coding";
 
-                <div className="mt-6 space-y-4">
+                                    return (
+                                        <div
+                                            key={`${item.created_at}-${index}`}
+                                            className="
+                                                flex
+                                                items-center
+                                                justify-between
+                                                gap-4
+                                                rounded-2xl
+                                                border
+                                                border-slate-100
+                                                p-3
+                                                transition
+                                                hover:border-violet-100
+                                                hover:bg-violet-50/40
+                                            "
+                                        >
+                                            <div className="flex min-w-0 items-center gap-3">
+                                                <div
+                                                    className={`
+                                                        flex
+                                                        h-10
+                                                        w-10
+                                                        shrink-0
+                                                        items-center
+                                                        justify-center
+                                                        rounded-xl
+                                                        ${isCoding
+                                                            ? "bg-violet-100 text-violet-700"
+                                                            : "bg-emerald-100 text-emerald-700"
+                                                        }
+                                                    `}
+                                                >
+                                                    {isCoding ? (
+                                                        <Code2
+                                                            size={
+                                                                18
+                                                            }
+                                                        />
+                                                    ) : (
+                                                        <MessageSquareText
+                                                            size={
+                                                                18
+                                                            }
+                                                        />
+                                                    )}
+                                                </div>
 
-                    {activity.slice(0, 5).map(
-                        (
-                            item,
-                            index
-                        ) => (
+                                                <div className="min-w-0">
+                                                    <p className="truncate font-semibold text-slate-900">
+                                                        {item.role ||
+                                                            "Interview Session"}
+                                                    </p>
 
-                            <div
-                                key={index}
-                                className="
-                                    border
-                                    rounded-2xl
-                                    p-5
-                                    flex
-                                    items-center
-                                    justify-between
-                                    hover:bg-zinc-50
-                                    transition
-                                "
-                            >
+                                                    <p className="mt-0.5 truncate text-sm text-slate-500">
+                                                        {isCoding
+                                                            ? `Coding • ${item.level ||
+                                                            "Practice"
+                                                            }`
+                                                            : `Behavioral • ${item.level ||
+                                                            "Practice"
+                                                            }`}
+                                                    </p>
 
-                                <div>
+                                                    <p className="mt-1 text-xs text-slate-400">
+                                                        {item.created_at
+                                                            ? new Date(
+                                                                item.created_at
+                                                            ).toLocaleDateString(
+                                                                "en-US",
+                                                                {
+                                                                    month: "short",
+                                                                    day: "numeric",
+                                                                    year: "numeric",
+                                                                }
+                                                            )
+                                                            : "Recently"}
+                                                    </p>
+                                                </div>
+                                            </div>
 
-                                    <div className="font-semibold">
-                                        {item.role || "Interview Session"}
-                                    </div>
+                                            <div className="shrink-0 text-right">
+                                                <span
+                                                    className={`
+                                                        inline-flex
+                                                        rounded-full
+                                                        px-2.5
+                                                        py-1
+                                                        text-xs
+                                                        font-semibold
+                                                        ${getStatusStyle(
+                                                        item.status
+                                                    )}
+                                                    `}
+                                                >
+                                                    {item.status ||
+                                                        "practice"}
+                                                </span>
 
-                                    <div className="text-sm text-zinc-500 mt-1">
-                                        {item.level || "Practice"}
-                                    </div>
+                                                {item.status ===
+                                                    "completed" && (
+                                                        <div className="mt-2 flex items-center justify-end gap-1 text-xs font-medium text-emerald-600">
+                                                            <CheckCircle2
+                                                                size={
+                                                                    13
+                                                                }
+                                                            />
+                                                            Finished
+                                                        </div>
+                                                    )}
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                            )}
+                    </div>
 
-                                    <div className="text-xs text-zinc-400 mt-2">
-                                        {item.created_at
-                                            ? new Date(
-                                                item.created_at
-                                            ).toLocaleString()
-                                            : "Recently"}
-                                    </div>
-
-                                </div>
-
-                                <div className="text-right">
-
-                                    <div
-                                        className={`
-                                            inline-flex
-                                            px-3
-                                            py-1
-                                            rounded-full
-                                            text-sm
-                                            font-medium
-                                            ${getStatusColor(
-                                            item.status
-                                        )}
-                                        `}
-                                    >
-                                        {item.status || "practice"}
-                                    </div>
-
-                                    <div className="text-violet-600 font-semibold mt-3">
-                                        View →
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                        )
-                    )}
-
-                </div>
-
+                    <a
+                        href="/history"
+                        className="
+                            mt-3
+                            shrink-0
+                            block
+                            rounded-2xl
+                            bg-violet-50
+                            px-4
+                            py-2.5
+                            text-center
+                            text-sm
+                            font-semibold
+                            text-violet-700
+                            transition
+                            hover:bg-violet-100
+                        "
+                    >
+                        View all activity
+                    </a>
+                </>
             )}
-
-        </div>
+        </section>
     );
 }
