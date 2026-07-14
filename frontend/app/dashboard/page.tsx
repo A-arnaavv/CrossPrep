@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useUser } from "@clerk/nextjs";
+import {
+    useUser,
+    useClerk,
+} from "@clerk/nextjs";
 import Link from "next/link";
 import StatsCards from "./components/StatsCards";
 import PerformanceTrend from "./components/PerformanceTrend";
@@ -20,6 +23,7 @@ import {
     Target,
     TrendingUp,
     Bell,
+    LogOut,
 } from "lucide-react";
 
 import { api } from "@/lib/api";
@@ -29,8 +33,10 @@ import type {
     DashboardActivity,
 } from "./components/types";
 
+
 export default function DashboardPage() {
     const { user, isLoaded } = useUser();
+    const { signOut } = useClerk();
 
     const [stats, setStats] =
         useState<DashboardStats>({
@@ -45,6 +51,9 @@ export default function DashboardPage() {
 
     const [loading, setLoading] =
         useState(true);
+
+    const [showLogout, setShowLogout] =
+        useState(false);
 
     const progressData =
         activity.length > 0
@@ -277,24 +286,83 @@ export default function DashboardPage() {
 
                 </div>
 
-                <div className="border-t border-slate-100 p-5">
+                <div className="relative border-t border-slate-100 p-5">
 
                     <div className="rounded-2xl bg-slate-50 p-4">
 
-                        <div className="flex items-center gap-3">
+                        <div className="relative">
+                            <div
+                                onClick={() => setShowLogout(!showLogout)}
+                                className="
+                                    flex
+                                    w-full
+                                    cursor-pointer
+                                    items-center
+                                    gap-3
+                                    rounded-2xl
+                                    p-2
+                                    transition
+                                    hover:bg-slate-50
+                                "
+                            >
+                                {showLogout && (
+                                    <div
+                                        className="
+                                        absolute
+                                        bottom-24
+                                        left-5
+                                        w-48
+                                        rounded-2xl
+                                        border
+                                        border-slate-100
+                                        bg-white
+                                        p-2
+                                        shadow-xl
+                                        z-50
+                                    "
+                                    >
+                                        <button
+                                            onClick={() =>
+                                                signOut({
+                                                    redirectUrl: "/sign-in",
+                                                })
+                                            }
+                                            className="
+                                                flex
+                                                w-full
+                                                items-center
+                                                gap-3
+                                                rounded-xl
+                                                px-4
+                                                py-3
+                                                text-left
+                                                text-red-600
+                                                transition
+                                                hover:bg-red-50
+                                            "
+                                        >
+                                            <LogOut size={18} />
 
-                            <div className="h-11 w-11 rounded-full bg-violet-600 text-white flex items-center justify-center text-lg font-bold">
-                                {user?.firstName?.[0] || "A"}
-                            </div>
-
-                            <div className="min-w-0">
-
-                                <div className="font-bold truncate">
-                                    {user?.fullName || "User"}
+                                            <span className="font-medium">
+                                                Logout
+                                            </span>
+                                        </button>
+                                    </div>
+                                )}
+                                <div className="h-11 w-11 rounded-full bg-violet-600 text-white flex items-center justify-center text-lg font-bold">
+                                    {user?.firstName?.[0] || "A"}
                                 </div>
 
-                                <div className="text-xs text-slate-500 truncate">
-                                    {user?.primaryEmailAddress?.emailAddress}
+                                <div className="min-w-0">
+
+                                    <div className="font-bold truncate">
+                                        {user?.fullName || "User"}
+                                    </div>
+
+                                    <div className="text-xs text-slate-500 truncate">
+                                        {user?.primaryEmailAddress?.emailAddress}
+                                    </div>
+
                                 </div>
 
                             </div>
@@ -302,7 +370,6 @@ export default function DashboardPage() {
                         </div>
 
                     </div>
-
                 </div>
 
             </aside>

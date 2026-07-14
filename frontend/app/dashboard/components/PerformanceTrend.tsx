@@ -20,11 +20,99 @@ type PerformanceTrendProps = {
 };
 
 type ChartPoint = {
+    xKey: string;
     label: string;
+    fullDate: string;
     coding: number | null;
     behavioral: number | null;
     role: string;
 };
+
+type TooltipPayloadItem = {
+    name: string;
+    value: number | null;
+    color: string;
+    payload: ChartPoint;
+};
+
+type CustomTooltipProps = {
+    active?: boolean;
+    payload?: TooltipPayloadItem[];
+};
+
+function CustomTooltip({
+    active,
+    payload,
+}: CustomTooltipProps) {
+    if (!active || !payload?.length) {
+        return null;
+    }
+
+    const point = payload[0]?.payload;
+
+    return (
+        <div
+            className="
+                min-w-52
+                rounded-2xl
+                border
+                border-slate-100
+                bg-white
+                p-4
+                shadow-xl
+            "
+        >
+            <p className="font-bold text-slate-950">
+                {point?.role || "Interview"}
+            </p>
+
+            <p className="mt-1 text-xs text-slate-400">
+                {point?.fullDate}
+            </p>
+
+            <div className="mt-4 space-y-2">
+                {payload.map((item) => {
+                    if (
+                        item.value === null ||
+                        item.value === undefined
+                    ) {
+                        return null;
+                    }
+
+                    return (
+                        <div
+                            key={item.name}
+                            className="
+                                flex
+                                items-center
+                                justify-between
+                                gap-6
+                            "
+                        >
+                            <div className="flex items-center gap-2">
+                                <span
+                                    className="h-2.5 w-2.5 rounded-full"
+                                    style={{
+                                        backgroundColor:
+                                            item.color,
+                                    }}
+                                />
+
+                                <span className="text-sm text-slate-500">
+                                    {item.name}
+                                </span>
+                            </div>
+
+                            <span className="text-sm font-bold text-slate-900">
+                                {item.value}/10
+                            </span>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
 
 export default function PerformanceTrend({
     activity,
@@ -39,49 +127,52 @@ export default function PerformanceTrend({
         )
         .slice()
         .reverse()
-        .map((item, index) => ({
-            label: item.created_at
-                ? new Date(
-                    item.created_at
-                ).toLocaleDateString(
-                    "en-US",
-                    {
-                        month: "short",
-                        day: "numeric",
-                    }
-                )
-                : `I${index + 1}`,
+        .map((item, index) => {
+            const createdAt = item.created_at
+                ? new Date(item.created_at)
+                : null;
 
-            coding:
-                item.coding_score !== null &&
-                    item.coding_score !== undefined
-                    ? Math.min(
-                        100,
-                        Math.round(
-                            Number(
-                                item.coding_score
-                            ) * 10
-                        )
+            return {
+                xKey: item.created_at ?? `interview-${index}`,
+                label: createdAt
+                    ? createdAt.toLocaleDateString(
+                        "en-US",
+                        {
+                            month: "short",
+                            day: "numeric",
+                        }
                     )
-                    : null,
+                    : `I${index + 1}`,
 
-            behavioral:
-                item.behavioral_score !== null &&
-                    item.behavioral_score !== undefined
-                    ? Math.min(
-                        100,
-                        Math.round(
-                            Number(
-                                item.behavioral_score
-                            ) * 10
-                        )
+                fullDate: createdAt
+                    ? createdAt.toLocaleString(
+                        "en-US",
+                        {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                            hour: "numeric",
+                            minute: "2-digit",
+                        }
                     )
-                    : null,
+                    : `Interview ${index + 1}`,
 
-            role:
-                item.role ||
-                "Interview",
-        }));
+                coding:
+                    item.coding_score !== null &&
+                        item.coding_score !== undefined
+                        ? Number(item.coding_score)
+                        : null,
+
+                behavioral:
+                    item.behavioral_score !== null &&
+                        item.behavioral_score !== undefined
+                        ? Number(item.behavioral_score)
+                        : null,
+
+                role:
+                    item.role || "Interview",
+            };
+        });
 
     return (
         <section
@@ -93,7 +184,10 @@ export default function PerformanceTrend({
                 border-slate-100
                 bg-white
                 p-5
-                shadow-sm
+                shadow-md
+                hover:shadow-xl
+                transition-all
+                duration-300
                 flex
                 flex-col
             "
@@ -104,7 +198,7 @@ export default function PerformanceTrend({
                 </h2>
 
                 <p className="mt-1 text-sm text-slate-500">
-                    Coding and behavioral interview score trends.
+                    Interview performance across coding and behavioral sessions.
                 </p>
             </div>
 
@@ -151,7 +245,10 @@ export default function PerformanceTrend({
                             />
 
                             <XAxis
-                                dataKey="label"
+                                dataKey="xKey"
+                                tickFormatter={(_, index) =>
+                                    data[index]?.label || ""
+                                }
                                 axisLine={false}
                                 tickLine={false}
                                 tick={{
@@ -162,19 +259,16 @@ export default function PerformanceTrend({
                             />
 
                             <YAxis
-                                domain={[0, 100]}
+                                domain={[0, 10]}
                                 ticks={[
                                     0,
-                                    25,
-                                    50,
-                                    75,
-                                    100,
+                                    2,
+                                    4,
+                                    6,
+                                    8,
+                                    10,
                                 ]}
-                                tickFormatter={(
-                                    value
-                                ) =>
-                                    `${value}%`
-                                }
+                                tickFormatter={(value) => value}
                                 axisLine={false}
                                 tickLine={false}
                                 tick={{
@@ -185,75 +279,70 @@ export default function PerformanceTrend({
                             />
 
                             <Tooltip
-                                formatter={(
-                                    value,
-                                    name
-                                ) => [
-                                        `${value}%`,
-                                        name,
-                                    ]}
-                                labelFormatter={(
-                                    label
-                                ) =>
-                                    `Date: ${label}`
-                                }
-                                contentStyle={{
-                                    borderRadius:
-                                        "16px",
-                                    border:
-                                        "1px solid #e2e8f0",
-                                    boxShadow:
-                                        "0 12px 30px rgba(15, 23, 42, 0.12)",
+                                cursor={{
+                                    stroke: "#E2E8F0",
+                                    strokeDasharray: "4 4",
                                 }}
+                                content={
+                                    <CustomTooltip />
+                                }
                             />
 
                             <Legend
                                 verticalAlign="top"
                                 align="right"
                                 iconType="circle"
-                                iconSize={8}
+                                iconSize={6}
                                 wrapperStyle={{
                                     paddingBottom:
                                         "16px",
                                     fontSize:
-                                        "13px",
+                                        "12px",
                                 }}
                             />
 
                             <Line
-                                type="monotone"
+                                type="natural"
                                 dataKey="coding"
                                 name="Coding"
                                 stroke="#7c3aed"
                                 strokeWidth={3}
                                 connectNulls
                                 dot={{
-                                    r: 4,
+                                    r: 3,
                                     fill: "#7c3aed",
                                     stroke: "#ffffff",
                                     strokeWidth: 2,
                                 }}
                                 activeDot={{
-                                    r: 6,
+                                    r: 8,
+                                    stroke: "#ffffff",
+                                    strokeWidth: 3,
                                 }}
+                                animationDuration={1200}
+                                animationEasing="ease-out"
                             />
 
                             <Line
-                                type="monotone"
+                                type="natural"
                                 dataKey="behavioral"
                                 name="Behavioral"
                                 stroke="#10b981"
                                 strokeWidth={3}
                                 connectNulls
                                 dot={{
-                                    r: 4,
+                                    r: 3,
                                     fill: "#10b981",
                                     stroke: "#ffffff",
                                     strokeWidth: 2,
                                 }}
                                 activeDot={{
-                                    r: 6,
+                                    r: 8,
+                                    stroke: "#ffffff",
+                                    strokeWidth: 3,
                                 }}
+                                animationDuration={1200}
+                                animationEasing="ease-out"
                             />
                         </LineChart>
                     </ResponsiveContainer>
