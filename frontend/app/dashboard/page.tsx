@@ -95,7 +95,7 @@ export default function DashboardPage() {
             icon: LayoutDashboard,
         },
         {
-            label: "Resumes",
+            label: "Resume Intelligence",
             href: "/upload",
             icon: FileText,
         },

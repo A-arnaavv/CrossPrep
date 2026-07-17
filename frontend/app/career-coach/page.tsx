@@ -6,6 +6,7 @@ import Link from "next/link";
 
 import { api } from "@/lib/api";
 import AICoach from "../dashboard/components/AICoach";
+import BackToDashboard from "@/components/navigation/BackToDashboard";
 
 import type {
     CareerCoachReport,
@@ -53,13 +54,7 @@ export default function CareerCoachPage() {
             <main className="max-w-5xl mx-auto px-8 py-10">
 
                 <div className="mb-8">
-
-                    <Link
-                        href="/dashboard"
-                        className="text-violet-600 font-semibold"
-                    >
-                        ← Back to Dashboard
-                    </Link>
+                    <BackToDashboard />
 
                     <h1 className="text-4xl font-bold mt-6">
                         AI Career Coach
