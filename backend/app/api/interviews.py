@@ -102,6 +102,7 @@ def create_interview(
         "questions": questions,
     }
 
+
 @router.get("/{interview_id}")
 def get_interview(
     interview_id: UUID,
@@ -135,6 +136,7 @@ def get_interview(
             for question in interview.questions
         ],
     }
+
 
 @router.get("/user/{clerk_id}")
 def get_user_interviews(
@@ -208,6 +210,7 @@ def get_user_interviews(
 
     return data
 
+
 @router.get("/{interview_id}/report")
 def get_report(
     interview_id: UUID,
@@ -226,9 +229,15 @@ def get_report(
             "error": "Interview not found"
         }
 
+    # Create a lookup from question_id -> Question
+    questions_by_id = {
+        question.id: question
+        for question in interview.questions
+    }
+
     question_ids = [
-        q.id
-        for q in interview.questions
+        question.id
+        for question in interview.questions
     ]
 
     answer_repo = AnswerRepository(
@@ -272,39 +281,43 @@ def get_report(
             2,
         )
 
-    return {
-        "interview_id": str(
-            interview.id
-        ),
+    report_questions = []
 
-        "role": interview.role,
+    for answer in answers:
 
-        "level": interview.level,
+        question = questions_by_id.get(
+            answer.question_id
+        )
 
-        "total_questions":
-            total_questions,
-
-        "questions_answered":
-            questions_answered,
-
-        "completion_percentage":
-            completion_percentage,
-
-        "average_score": round(
-            average_score,
-            2,
-        ),
-
-        "questions": [
+        report_questions.append(
             {
                 "question_id": str(
                     answer.question_id
+                ),
+                "question": (
+                    question.question_text
+                    if question
+                    else "Question text unavailable"
                 ),
                 "score": answer.score,
                 "feedback": answer.feedback,
                 "ideal_answer": answer.ideal_answer,
                 "answer": answer.answer_text,
             }
-            for answer in answers
-        ],
+        )
+
+    return {
+        "interview_id": str(
+            interview.id
+        ),
+        "role": interview.role,
+        "level": interview.level,
+        "total_questions": total_questions,
+        "questions_answered": questions_answered,
+        "completion_percentage": completion_percentage,
+        "average_score": round(
+            average_score,
+            2,
+        ),
+        "questions": report_questions,
     }
