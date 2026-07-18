@@ -8,6 +8,7 @@ from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 
 from app.database.base import Base
+from app.schemas.answer import SubmitAnswerRequest
 
 
 class Answer(Base):

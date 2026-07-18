@@ -23,14 +23,14 @@ from sqlalchemy import func
 
 from app.models.answer import Answer
 from app.models.question import Question
+from app.schemas.answer import SubmitAnswerRequest
 
 router = APIRouter()
 
 
 @router.post("/submit")
 def submit_answer(
-    question_id: UUID,
-    answer_text: str,
+    request: SubmitAnswerRequest,
     db: Session = Depends(get_db),
 ):
     question_repo = QuestionRepository(
@@ -38,7 +38,7 @@ def submit_answer(
     )
 
     question = question_repo.get_by_id(
-        question_id
+        request.question_id
     )
 
     if not question:
@@ -47,11 +47,9 @@ def submit_answer(
         }
 
     try:
-        evaluation = (
-            GeminiService.evaluate_answer(
-                question.question_text,
-                answer_text,
-            )
+        evaluation = GeminiService.evaluate_answer(
+            question.question_text,
+            request.answer_text,
         )
 
     except Exception as e:
@@ -73,7 +71,7 @@ def submit_answer(
 
     answer = answer_repo.create(
         question_id=question.id,
-        answer_text=answer_text,
+        answer_text=request.answer_text,
         score=evaluation["score"],
         feedback=evaluation["feedback"],
         ideal_answer=evaluation["ideal_answer"],

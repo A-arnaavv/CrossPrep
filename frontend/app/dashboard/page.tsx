@@ -101,7 +101,7 @@ export default function DashboardPage() {
         },
         {
             label: "Interviews",
-            href: "/interview/new",
+            href: "/interviews",
             icon: MessagesSquare,
         },
         {
