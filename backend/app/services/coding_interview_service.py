@@ -152,24 +152,16 @@ Return ONLY valid JSON.
         placeholder_patterns = [
             "todo",
             "fixme",
-            "returnnone",
-            "returnnull",
-            "return[]",
-            "return{}",
-            "return0",
             "defsolution():pass",
             "defsolution():return",
-            "defsolution():returnnone",
             "functionsolution(){}",
             "functionsolution(){return;}",
-            "functionsolution(){returnnull;}",
             "publicstaticvoidsolution(){}",
             "voidsolution(){}",
         ]
 
         if (
             not clean_code
-            or len(clean_code) < 25
             or any(
                 pattern in compact_code
                 for pattern in placeholder_patterns
@@ -177,10 +169,11 @@ Return ONLY valid JSON.
         ):
             return {
                 "score": 0,
-                "feedback":
-                    "The submitted code appears to be starter code, placeholder code, or too incomplete to solve the problem."
+                "feedback": (
+                    "The submitted code appears to be "
+                    "starter code or placeholder code."
+                ),
             }
-
         model = genai.GenerativeModel(
             "gemini-3.1-flash-lite"
         )

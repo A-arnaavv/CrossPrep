@@ -42,8 +42,10 @@ export default function CodingInterviewPage() {
     const [code, setCode] =
         useState("");
 
-    const [loading, setLoading] =
-        useState(false);
+    const [loadingAction, setLoadingAction] =
+        useState<
+            "start" | "run" | "submit" | null
+        >(null);
 
     const [activeTab, setActiveTab] =
         useState("description");
@@ -84,7 +86,7 @@ export default function CodingInterviewPage() {
 
             try {
 
-                setLoading(true);
+                setLoadingAction("start");
 
                 const response =
                     await api.post(
@@ -133,7 +135,7 @@ export default function CodingInterviewPage() {
 
             } finally {
 
-                setLoading(false);
+                setLoadingAction(null);
 
             }
         };
@@ -194,7 +196,7 @@ export default function CodingInterviewPage() {
 
             try {
 
-                setLoading(true);
+                setLoadingAction("submit");
 
                 const response =
                     await api.post(
@@ -262,7 +264,7 @@ export default function CodingInterviewPage() {
 
             } finally {
 
-                setLoading(false);
+                setLoadingAction(null);
 
             }
         };
@@ -276,7 +278,7 @@ export default function CodingInterviewPage() {
 
             try {
 
-                setLoading(true);
+                setLoadingAction("run");
 
                 const response =
                     await api.post(
@@ -332,7 +334,7 @@ export default function CodingInterviewPage() {
 
             } finally {
 
-                setLoading(false);
+                setLoadingAction(null);
 
             }
         };
@@ -406,106 +408,139 @@ public:
     };
 
     if (interviewComplete && finalReport) {
-
         return (
-            <div className="h-screen p-4">
-                <FinalReport
-                    report={finalReport}
-                    role={role}
-                    language={language}
-                    onRestart={() =>
-                        window.location.reload()
-                    }
-                />
-            </div>
+            <main className="min-h-screen bg-[#f8f9ff] px-3 py-6">
+                <div className="mx-auto max-w-7xl">
+                    <FinalReport
+                        report={finalReport}
+                        role={role}
+                        language={language}
+                        onRestart={() =>
+                            window.location.reload()
+                        }
+                    />
+                </div>
+            </main>
         );
-
     }
 
     return (
-        <div className="h-screen p-4">
+        <main className="h-dvh overflow-hidden bg-[#f8f9ff] p-3">
+            <div className="mx-auto flex h-full max-w-[1440px] flex-col">
+                <InterviewHeader
+                    question={question}
+                    role={role}
+                    setRole={setRole}
+                    language={language}
+                    setLanguage={setLanguage}
+                    loading={loadingAction == "start"}
+                    dbUserId={dbUserId}
+                    startInterview={startInterview}
+                />
 
-            <InterviewHeader
-                question={question}
-                role={role}
-                setRole={setRole}
-                language={language}
-                setLanguage={setLanguage}
-                loading={loading}
-                dbUserId={dbUserId}
-                startInterview={startInterview}
-            />
-
-            {loading && !question && (
-
-                <div
-                    className="
-                        mb-4
-                        border
-                        rounded-2xl
-                        p-6
-                        bg-violet-50
-                        text-violet-700
-                    "
-                >
+                {question && !interviewComplete && (
                     <div
                         className="
-                            h-6
-                            w-6
-                            border-4
-                            border-violet-300
-                            border-t-violet-700
-                            rounded-full
-                            animate-spin
-                            mb-3
+                            grid min-h-0 flex-1
+                            grid-cols-[minmax(0,2fr)_minmax(0,3fr)]
+                            gap-3 overflow-hidden
                         "
-                    />
-                    <div className="font-semibold">
-                        Generating your coding interview...
+                    >
+                        <QuestionPanel
+                            question={question}
+                            activeTab={activeTab}
+                            setActiveTab={setActiveTab}
+                            questionNumber={questionNumber}
+                            totalQuestions={totalQuestions}
+                        />
+
+                        <CodeEditorPanel
+                            language={language}
+                            code={code}
+                            setCode={setCode}
+                            editorLanguageMap={
+                                editorLanguageMap
+                            }
+                            testResults={testResults}
+                            runOutput={runOutput}
+                            runningCode={loadingAction === "run"}
+                            submittingCode={loadingAction === "submit"}
+                            runCode={runCode}
+                            submitCode={submitCode}
+                        />
+                    </div>
+                )}
+            </div>
+        </main>
+    );
+
+    function CreatingInterviewLoader({
+        role,
+        language,
+    }: {
+        role: string;
+        language: string;
+    }) {
+        return (
+            <main className="flex min-h-dvh items-center justify-center bg-[#f8f9ff] px-4">
+                <section className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-lg shadow-violet-100/60">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-100">
+                        <div className="h-8 w-8 animate-spin rounded-full border-4 border-violet-200 border-t-violet-600" />
                     </div>
 
-                    <p className="text-sm mt-2">
-                        Creating 4 questions: 1 easy, 2 medium, and 1 hard.
+                    <p className="mt-6 text-xs font-semibold uppercase tracking-[0.16em] text-violet-600">
+                        Preparing your session
+                    </p>
+
+                    <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
+                        Creating your coding interview
+                    </h1>
+
+                    <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-500">
+                        We are generating four role-specific
+                        questions that gradually increase in
+                        difficulty.
+                    </p>
+
+                    <div className="mt-7 grid grid-cols-2 gap-3 text-left">
+                        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                            <p className="text-xs font-medium text-slate-500">
+                                Target role
+                            </p>
+
+                            <p className="mt-1 truncate text-sm font-semibold text-slate-900">
+                                {role}
+                            </p>
+                        </div>
+
+                        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                            <p className="text-xs font-medium text-slate-500">
+                                Language
+                            </p>
+
+                            <p className="mt-1 text-sm font-semibold text-slate-900">
+                                {language}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="mt-6 flex items-center justify-center gap-2">
+                        {[0, 1, 2, 3].map((index) => (
+                            <span
+                                key={index}
+                                className="h-2.5 w-2.5 animate-pulse rounded-full bg-violet-500"
+                                style={{
+                                    animationDelay: `${index * 180}ms`,
+                                }}
+                            />
+                        ))}
+                    </div>
+
+                    <p className="mt-4 text-xs text-slate-400">
                         This may take a few seconds.
                     </p>
-                </div>
-
-            )}
-            {question && !interviewComplete && (
-
-                <div
-                    className="
-                        grid
-                        grid-cols-[42%_58%]
-                        gap-4
-                        h-[75vh]
-                    "
-                >
-
-                    <QuestionPanel
-                        question={question}
-                        activeTab={activeTab}
-                        setActiveTab={setActiveTab}
-                        questionNumber={questionNumber}
-                        totalQuestions={totalQuestions}
-                    />
-
-                    <CodeEditorPanel
-                        language={language}
-                        code={code}
-                        setCode={setCode}
-                        editorLanguageMap={editorLanguageMap}
-                        testResults={testResults}
-                        runOutput={runOutput}
-                        loading={loading}
-                        runCode={runCode}
-                        submitCode={submitCode}
-                    />
-
-                </div>
-
-            )}
-        </div>
-
-    );
+                </section>
+            </main>
+        );
+    }
 }

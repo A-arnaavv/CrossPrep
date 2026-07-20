@@ -92,7 +92,7 @@ export default function ResultsPage() {
             "completed_interview_id"
         );
 
-        router.push("/interview");
+        router.push("/interviews");
     };
 
     const handleBackToDashboard = () => {

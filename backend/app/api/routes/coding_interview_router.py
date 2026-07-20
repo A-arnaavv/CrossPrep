@@ -1,3 +1,4 @@
+from app.models import coding_interview_question
 from uuid import UUID
 
 from fastapi import APIRouter
@@ -273,12 +274,16 @@ def submit_session_question(
     )
 
     question_results = [
-        {
-            "number": q.question_number,
-            "score": q.score,
-        }
-        for q in questions
-    ]
+    {
+        "number": q.question_number,
+        "title": q.title,
+        "difficulty": q.difficulty,
+        "score": q.score,
+        "feedback": q.feedback,
+        "code": q.code,
+    }
+    for q in questions
+]
 
     ai_report = (
     CodingInterviewService.generate_final_report(
