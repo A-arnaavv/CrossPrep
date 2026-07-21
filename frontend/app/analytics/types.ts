@@ -1,6 +1,6 @@
 export type AnalyticsInterview = {
     role: string;
-    level: string;
-    average_score: number;
+    level?: string | null;
+    average_score?: number | null;
     created_at: string;
 };
