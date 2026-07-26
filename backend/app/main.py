@@ -24,6 +24,10 @@ from app.api.routes.coding_interview_router import (
 
 from app.api import career_coach
 
+from app.api.routes.profile import (
+    router as profile_router,
+)
+
 app = FastAPI(title="InterviewGPT API")
 
 app.add_middleware(
@@ -95,4 +99,9 @@ app.include_router(
     career_coach.router,
     prefix="/api/career-coach",
     tags=["Career Coach"],
+)
+
+app.include_router(
+    profile_router,
+    prefix="/api",
 )

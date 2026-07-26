@@ -1,12 +1,34 @@
 "use client";
 
 import { useClerk, useUser } from "@clerk/nextjs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ProfileHero from "./components/ProfileHero";
 import AboutCard from "./components/AboutCard";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import CareerPreferencesCard from "./components/CareerPreferencesCard";
 import ProfessionalLinksCard from "./components/ProfessionalLinksCard";
+import SaveProfileBar from "./components/SaveProfileBar";
+import { api } from "@/lib/api";
+
+type ProfileData = {
+    bio: string;
+    target_role: string;
+    experience_level: string;
+    preferred_companies: string[];
+    linkedin_url: string;
+    github_url: string;
+    portfolio_url: string;
+};
+
+type SavedProfileSnapshot = {
+    bio: string;
+    targetRole: string;
+    experienceLevel: string;
+    preferredCompanies: string;
+    linkedinUrl: string;
+    githubUrl: string;
+    portfolioUrl: string;
+};
 
 export default function ProfilePage() {
     const { user, isLoaded } = useUser();
@@ -33,7 +55,125 @@ export default function ProfilePage() {
 
     const [isEditingCareer, setIsEditingCareer] = useState(false);
 
-    if (!isLoaded) {
+    const [isLoadingProfile, setIsLoadingProfile] =
+        useState(true);
+
+    const [isSavingProfile, setIsSavingProfile] =
+        useState(false);
+
+    const [profileMessage, setProfileMessage] =
+        useState("");
+
+    const [profileError, setProfileError] =
+        useState("");
+
+    const [savedProfile, setSavedProfile] =
+        useState<SavedProfileSnapshot>({
+            bio: "",
+            targetRole: "",
+            experienceLevel: "",
+            preferredCompanies: "",
+            linkedinUrl: "",
+            githubUrl: "",
+            portfolioUrl: "",
+        });
+
+    useEffect(() => {
+        const loadProfile = async () => {
+            if (!user) {
+                return;
+            }
+
+            try {
+                setIsLoadingProfile(true);
+                setProfileError("");
+
+                const response = await api.get<ProfileData>(
+                    "/api/profile",
+                    {
+                        params: {
+                            clerk_id: user.id,
+                        },
+                    }
+                );
+
+                const data = response.data;
+
+                const loadedProfile = {
+                    bio: data.bio || "",
+                    targetRole: data.target_role || "",
+                    experienceLevel: data.experience_level || "",
+                    preferredCompanies:
+                        (data.preferred_companies || []).join(", "),
+                    linkedinUrl: data.linkedin_url || "",
+                    githubUrl: data.github_url || "",
+                    portfolioUrl: data.portfolio_url || "",
+                };
+
+                setBio(loadedProfile.bio);
+                setTargetRole(loadedProfile.targetRole);
+                setExperienceLevel(loadedProfile.experienceLevel);
+                setPreferredCompanies(
+                    loadedProfile.preferredCompanies
+                );
+                setLinkedinUrl(loadedProfile.linkedinUrl);
+                setGithubUrl(loadedProfile.githubUrl);
+                setPortfolioUrl(loadedProfile.portfolioUrl);
+
+                setSavedProfile(loadedProfile);
+
+            } catch (error) {
+                console.error(
+                    "Profile loading failed:",
+                    error
+                );
+
+                setProfileError(
+                    "We could not load your profile."
+                );
+            } finally {
+                setIsLoadingProfile(false);
+            }
+        };
+
+        loadProfile();
+    }, [user]);
+
+    const hasUnsavedChanges =
+        bio !== savedProfile.bio ||
+        targetRole !== savedProfile.targetRole ||
+        experienceLevel !== savedProfile.experienceLevel ||
+        preferredCompanies !==
+        savedProfile.preferredCompanies ||
+        linkedinUrl !== savedProfile.linkedinUrl ||
+        githubUrl !== savedProfile.githubUrl ||
+        portfolioUrl !== savedProfile.portfolioUrl;
+    useEffect(() => {
+        const handleBeforeUnload = (
+            event: BeforeUnloadEvent
+        ) => {
+            if (!hasUnsavedChanges) {
+                return;
+            }
+
+            event.preventDefault();
+            event.returnValue = "";
+        };
+
+        window.addEventListener(
+            "beforeunload",
+            handleBeforeUnload
+        );
+
+        return () => {
+            window.removeEventListener(
+                "beforeunload",
+                handleBeforeUnload
+            );
+        };
+    }, [hasUnsavedChanges]);
+
+    if (!isLoaded || (user && isLoadingProfile)) {
         return (
             <DashboardLayout>
                 <div className="mx-auto max-w-6xl animate-pulse space-y-8">
@@ -82,6 +222,63 @@ export default function ProfilePage() {
         return `https://${trimmedValue}`;
     };
 
+    const handleSaveProfile = async () => {
+        if (!user) {
+            setProfileError(
+                "Please sign in before saving your profile."
+            );
+            return;
+        }
+
+        const companies = preferredCompanies
+            .split(",")
+            .map((company) => company.trim())
+            .filter(Boolean);
+
+        try {
+            setIsSavingProfile(true);
+            setProfileMessage("");
+            setProfileError("");
+
+            await api.put("/api/profile", {
+                clerk_id: user.id,
+                bio: bio || null,
+                target_role: targetRole || null,
+                experience_level:
+                    experienceLevel || null,
+                preferred_companies: companies,
+                linkedin_url: linkedinUrl || null,
+                github_url: githubUrl || null,
+                portfolio_url: portfolioUrl || null,
+            });
+
+            setSavedProfile({
+                bio,
+                targetRole,
+                experienceLevel,
+                preferredCompanies,
+                linkedinUrl,
+                githubUrl,
+                portfolioUrl,
+            });
+
+            setProfileMessage(
+                "Your profile has been saved successfully."
+            );
+        } catch (error) {
+            console.error(
+                "Profile saving failed:",
+                error
+            );
+
+            setProfileError(
+                "We could not save your profile. Please try again."
+            );
+        } finally {
+            setIsSavingProfile(false);
+        }
+    };
+
     return (
         <DashboardLayout>
             <div className="mx-auto max-w-6xl space-y-8">
@@ -114,6 +311,8 @@ export default function ProfilePage() {
                     onDraftChange={setDraftBio}
                     onEdit={() => {
                         setDraftBio(bio);
+                        setProfileMessage("");
+                        setProfileError("");
                         setIsEditingBio(true);
                     }}
                     onCancel={() => {
@@ -143,6 +342,8 @@ export default function ProfilePage() {
                         setDraftTargetRole(targetRole);
                         setDraftExperienceLevel(experienceLevel);
                         setDraftPreferredCompanies(preferredCompanies);
+                        setProfileMessage("");
+                        setProfileError("");
                         setIsEditingCareer(true);
                     }}
                     onCancel={() => {
@@ -176,6 +377,8 @@ export default function ProfilePage() {
                         setDraftLinkedinUrl(linkedinUrl);
                         setDraftGithubUrl(githubUrl);
                         setDraftPortfolioUrl(portfolioUrl);
+                        setProfileMessage("");
+                        setProfileError("");
                         setIsEditingLinks(true);
                     }}
                     onCancel={() => {
@@ -196,6 +399,14 @@ export default function ProfilePage() {
                         );
                         setIsEditingLinks(false);
                     }}
+                />
+
+                <SaveProfileBar
+                    isSaving={isSavingProfile}
+                    hasUnsavedChanges={hasUnsavedChanges}
+                    message={profileMessage}
+                    error={profileError}
+                    onSave={handleSaveProfile}
                 />
             </div>
         </DashboardLayout>

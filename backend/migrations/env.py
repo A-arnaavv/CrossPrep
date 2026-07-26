@@ -8,6 +8,7 @@ from app.core.config import settings
 from app.models.user import User
 from app.models.interview import Interview
 from app.models.resume import Resume
+from app.models.user_profile import UserProfile
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
