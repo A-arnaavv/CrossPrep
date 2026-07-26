@@ -25,6 +25,10 @@ const links = [
     href: "/history",
     label: "History",
   },
+  {
+    href: "/profile",
+    label: "Profile",
+  },
 ];
 
 export default function Sidebar() {
