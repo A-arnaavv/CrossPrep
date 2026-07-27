@@ -2,18 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { useClerk, useUser } from "@clerk/nextjs";
-import { api } from "@/lib/api";
 
+import { api } from "@/lib/api";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+
+import AboutSettingsCard from "./components/AboutSettingsCard";
 import AccountCard from "./components/AccountCard";
 import AIPreferencesCard from "./components/AIPreferencesCard";
-import InterviewPreferencesCard from "./components/InterviewPreferencesCard";
-import SettingsHeader from "./components/SettingsHeader";
-import SettingsPreviewCard from "./components/SettingsPreviewCard";
-import NotificationsCard from "./components/NotificationsCard";
 import AppearanceCard from "./components/AppearanceCard";
+import InterviewPreferencesCard from "./components/InterviewPreferencesCard";
+import NotificationsCard from "./components/NotificationsCard";
 import PrivacyDataCard from "./components/PrivacyDataCard";
-import AboutSettingsCard from "./components/AboutSettingsCard";
+import SaveSettingsBar from "./components/SaveSettingsBar";
+import SettingsHeader from "./components/SettingsHeader";
 
 type SettingsData = {
     default_interview_duration: number;
@@ -28,104 +29,83 @@ type SettingsData = {
     theme: string;
 };
 
+type SavedSettingsSnapshot = {
+    defaultDuration: string;
+    defaultDifficulty: string;
+    preferredLanguage: string;
+    coachingStyle: string;
+    feedbackDetail: string;
+    weeklySummary: boolean;
+    interviewReminders: boolean;
+    resumeNotifications: boolean;
+    productUpdates: boolean;
+    theme: string;
+};
+
+const defaultSettings: SavedSettingsSnapshot = {
+    defaultDuration: "30",
+    defaultDifficulty: "medium",
+    preferredLanguage: "English",
+    coachingStyle: "balanced",
+    feedbackDetail: "standard",
+    weeklySummary: true,
+    interviewReminders: true,
+    resumeNotifications: true,
+    productUpdates: false,
+    theme: "system",
+};
+
 export default function SettingsPage() {
     const { user, isLoaded } = useUser();
     const { openUserProfile, signOut } = useClerk();
 
     const [defaultDuration, setDefaultDuration] =
-        useState("30");
+        useState(defaultSettings.defaultDuration);
 
     const [defaultDifficulty, setDefaultDifficulty] =
-        useState("medium");
+        useState(defaultSettings.defaultDifficulty);
 
     const [preferredLanguage, setPreferredLanguage] =
-        useState("English");
-
-    const [
-        isSavingInterviewPreferences,
-        setIsSavingInterviewPreferences,
-    ] = useState(false);
-
-    const [
-        interviewPreferencesMessage,
-        setInterviewPreferencesMessage,
-    ] = useState("");
+        useState(defaultSettings.preferredLanguage);
 
     const [coachingStyle, setCoachingStyle] =
-        useState("balanced");
+        useState(defaultSettings.coachingStyle);
 
     const [feedbackDetail, setFeedbackDetail] =
-        useState("standard");
-
-    const [
-        isSavingAIPreferences,
-        setIsSavingAIPreferences,
-    ] = useState(false);
-
-    const [
-        aiPreferencesMessage,
-        setAIPreferencesMessage,
-    ] = useState("");
+        useState(defaultSettings.feedbackDetail);
 
     const [weeklySummary, setWeeklySummary] =
-        useState(true);
+        useState(defaultSettings.weeklySummary);
 
     const [interviewReminders, setInterviewReminders] =
-        useState(true);
+        useState(defaultSettings.interviewReminders);
 
     const [resumeNotifications, setResumeNotifications] =
-        useState(true);
+        useState(defaultSettings.resumeNotifications);
 
     const [productUpdates, setProductUpdates] =
-        useState(false);
+        useState(defaultSettings.productUpdates);
 
-    const [
-        isSavingNotifications,
-        setIsSavingNotifications,
-    ] = useState(false);
+    const [theme, setTheme] =
+        useState(defaultSettings.theme);
 
-    const [
-        notificationsMessage,
-        setNotificationsMessage,
-    ] = useState("");
-
-    const [privacyMessage, setPrivacyMessage] =
-        useState("");
+    const [savedSettings, setSavedSettings] =
+        useState<SavedSettingsSnapshot>(defaultSettings);
 
     const [isLoadingSettings, setIsLoadingSettings] =
         useState(true);
 
+    const [isSavingSettings, setIsSavingSettings] =
+        useState(false);
+
+    const [settingsMessage, setSettingsMessage] =
+        useState("");
+
     const [settingsError, setSettingsError] =
         useState("");
 
-    const fullName =
-        user?.fullName ||
-        user?.firstName ||
-        "InterviewGPT User";
-
-    const email =
-        user?.primaryEmailAddress?.emailAddress ||
-        "Email unavailable";
-
-    const memberSince = user?.createdAt
-        ? new Intl.DateTimeFormat("en-US", {
-            month: "long",
-            year: "numeric",
-        }).format(user.createdAt)
-        : "Not available";
-
-    const [theme, setTheme] =
-        useState("system");
-
-    const [
-        isSavingAppearance,
-        setIsSavingAppearance,
-    ] = useState(false);
-
-    const [
-        appearanceMessage,
-        setAppearanceMessage,
-    ] = useState("");
+    const [privacyMessage, setPrivacyMessage] =
+        useState("");
 
     useEffect(() => {
         const loadSettings = async () => {
@@ -149,34 +129,32 @@ export default function SettingsPage() {
 
                 const data = response.data;
 
-                setDefaultDuration(
-                    String(data.default_interview_duration)
-                );
-                setDefaultDifficulty(
-                    data.default_difficulty
-                );
-                setPreferredLanguage(
-                    data.preferred_language
-                );
-                setCoachingStyle(
-                    data.coaching_style
-                );
-                setFeedbackDetail(
-                    data.feedback_detail
-                );
-                setWeeklySummary(
-                    data.weekly_summary
-                );
-                setInterviewReminders(
-                    data.interview_reminders
-                );
-                setResumeNotifications(
-                    data.resume_notifications
-                );
-                setProductUpdates(
-                    data.product_updates
-                );
-                setTheme(data.theme);
+                const loadedSettings: SavedSettingsSnapshot = {
+                    defaultDuration: String(
+                        data.default_interview_duration
+                    ),
+                    defaultDifficulty:
+                        data.default_difficulty,
+                    preferredLanguage:
+                        data.preferred_language,
+                    coachingStyle:
+                        data.coaching_style,
+                    feedbackDetail:
+                        data.feedback_detail,
+                    weeklySummary:
+                        data.weekly_summary,
+                    interviewReminders:
+                        data.interview_reminders,
+                    resumeNotifications:
+                        data.resume_notifications,
+                    productUpdates:
+                        data.product_updates,
+                    theme:
+                        data.theme,
+                };
+
+                applySettings(loadedSettings);
+                setSavedSettings(loadedSettings);
             } catch (error) {
                 console.error(
                     "Settings loading failed:",
@@ -193,6 +171,76 @@ export default function SettingsPage() {
 
         loadSettings();
     }, [user]);
+
+    const applySettings = (
+        settings: SavedSettingsSnapshot
+    ) => {
+        setDefaultDuration(
+            settings.defaultDuration
+        );
+        setDefaultDifficulty(
+            settings.defaultDifficulty
+        );
+        setPreferredLanguage(
+            settings.preferredLanguage
+        );
+        setCoachingStyle(
+            settings.coachingStyle
+        );
+        setFeedbackDetail(
+            settings.feedbackDetail
+        );
+        setWeeklySummary(
+            settings.weeklySummary
+        );
+        setInterviewReminders(
+            settings.interviewReminders
+        );
+        setResumeNotifications(
+            settings.resumeNotifications
+        );
+        setProductUpdates(
+            settings.productUpdates
+        );
+        setTheme(
+            settings.theme
+        );
+    };
+
+    const currentSettings: SavedSettingsSnapshot = {
+        defaultDuration,
+        defaultDifficulty,
+        preferredLanguage,
+        coachingStyle,
+        feedbackDetail,
+        weeklySummary,
+        interviewReminders,
+        resumeNotifications,
+        productUpdates,
+        theme,
+    };
+
+    const hasUnsavedChanges =
+        currentSettings.defaultDuration !==
+        savedSettings.defaultDuration ||
+        currentSettings.defaultDifficulty !==
+        savedSettings.defaultDifficulty ||
+        currentSettings.preferredLanguage !==
+        savedSettings.preferredLanguage ||
+        currentSettings.coachingStyle !==
+        savedSettings.coachingStyle ||
+        currentSettings.feedbackDetail !==
+        savedSettings.feedbackDetail ||
+        currentSettings.weeklySummary !==
+        savedSettings.weeklySummary ||
+        currentSettings.interviewReminders !==
+        savedSettings.interviewReminders ||
+        currentSettings.resumeNotifications !==
+        savedSettings.resumeNotifications ||
+        currentSettings.productUpdates !==
+        savedSettings.productUpdates ||
+        currentSettings.theme !==
+        savedSettings.theme;
 
     if (
         !isLoaded ||
@@ -218,146 +266,97 @@ export default function SettingsPage() {
         );
     }
 
-    const saveAllSettings = async () => {
+    const fullName =
+        user?.fullName ||
+        user?.firstName ||
+        "InterviewGPT User";
+
+    const email =
+        user?.primaryEmailAddress?.emailAddress ||
+        "Email unavailable";
+
+    const memberSince = user?.createdAt
+        ? new Intl.DateTimeFormat("en-US", {
+            month: "long",
+            year: "numeric",
+        }).format(user.createdAt)
+        : "Not available";
+
+    const clearFeedback = () => {
+        setSettingsMessage("");
+        setSettingsError("");
+    };
+
+    const handleSaveSettings = async () => {
         if (!user) {
-            throw new Error(
-                "You must be signed in to save settings."
+            setSettingsError(
+                "Please sign in before saving settings."
             );
+            return;
         }
 
-        await api.put("/api/settings", {
-            clerk_id: user.id,
-            default_interview_duration:
-                Number(defaultDuration),
-            default_difficulty:
-                defaultDifficulty,
-            preferred_language:
-                preferredLanguage,
-            coaching_style:
-                coachingStyle,
-            feedback_detail:
-                feedbackDetail,
-            weekly_summary:
-                weeklySummary,
-            interview_reminders:
-                interviewReminders,
-            resume_notifications:
-                resumeNotifications,
-            product_updates:
-                productUpdates,
-            theme,
-        });
-    };
-
-    const handleSaveInterviewPreferences = async () => {
         try {
-            setIsSavingInterviewPreferences(true);
-            setInterviewPreferencesMessage("");
+            setIsSavingSettings(true);
+            setSettingsMessage("");
             setSettingsError("");
 
-            await saveAllSettings();
+            await api.put("/api/settings", {
+                clerk_id: user.id,
+                default_interview_duration:
+                    Number(defaultDuration),
+                default_difficulty:
+                    defaultDifficulty,
+                preferred_language:
+                    preferredLanguage,
+                coaching_style:
+                    coachingStyle,
+                feedback_detail:
+                    feedbackDetail,
+                weekly_summary:
+                    weeklySummary,
+                interview_reminders:
+                    interviewReminders,
+                resume_notifications:
+                    resumeNotifications,
+                product_updates:
+                    productUpdates,
+                theme,
+            });
 
-            setInterviewPreferencesMessage(
-                "Interview preferences saved successfully."
+            setSavedSettings(currentSettings);
+
+            setSettingsMessage(
+                "Your settings have been saved successfully."
             );
         } catch (error) {
             console.error(
-                "Interview preferences save failed:",
+                "Settings save failed:",
                 error
             );
 
             setSettingsError(
-                "We could not save your interview preferences."
+                "We could not save your settings. Please try again."
             );
         } finally {
-            setIsSavingInterviewPreferences(false);
+            setIsSavingSettings(false);
         }
     };
 
-    const handleSaveAIPreferences = async () => {
-        try {
-            setIsSavingAIPreferences(true);
-            setAIPreferencesMessage("");
-            setSettingsError("");
-
-            await saveAllSettings();
-
-            setAIPreferencesMessage(
-                "AI preferences saved successfully."
-            );
-        } catch (error) {
-            console.error(
-                "AI preferences save failed:",
-                error
-            );
-
-            setSettingsError(
-                "We could not save your AI preferences."
-            );
-        } finally {
-            setIsSavingAIPreferences(false);
-        }
-    };
-
-    const handleSaveNotifications = async () => {
-        try {
-            setIsSavingNotifications(true);
-            setNotificationsMessage("");
-            setSettingsError("");
-
-            await saveAllSettings();
-
-            setNotificationsMessage(
-                "Notification preferences saved successfully."
-            );
-        } catch (error) {
-            console.error(
-                "Notification preferences save failed:",
-                error
-            );
-
-            setSettingsError(
-                "We could not save your notification preferences."
-            );
-        } finally {
-            setIsSavingNotifications(false);
-        }
-    };
-
-    const handleSaveAppearance = async () => {
-        try {
-            setIsSavingAppearance(true);
-            setAppearanceMessage("");
-            setSettingsError("");
-
-            await saveAllSettings();
-
-            setAppearanceMessage(
-                "Appearance preference saved successfully."
-            );
-        } catch (error) {
-            console.error(
-                "Appearance save failed:",
-                error
-            );
-
-            setSettingsError(
-                "We could not save your appearance preference."
-            );
-        } finally {
-            setIsSavingAppearance(false);
-        }
+    const handleResetSettings = () => {
+        applySettings(savedSettings);
+        setSettingsMessage("");
+        setSettingsError("");
     };
 
     const handleExportData = () => {
         setPrivacyMessage(
-            "Data export will be connected during the backend integration step."
+            "Data export will be connected during the privacy backend integration."
         );
     };
 
     const handleDeleteInterviewHistory = () => {
         const confirmed = window.confirm(
-            "Delete all interview history? This action cannot be undone."
+            "Clear all interview history? This action cannot be undone."
         );
 
         if (!confirmed) {
@@ -365,13 +364,13 @@ export default function SettingsPage() {
         }
 
         setPrivacyMessage(
-            "Interview history deletion will be connected during backend integration."
+            "Interview history deletion is not connected yet."
         );
     };
 
     const handleDeleteResumeHistory = () => {
         const confirmed = window.confirm(
-            "Delete all resume history? This action cannot be undone."
+            "Clear all resume history? This action cannot be undone."
         );
 
         if (!confirmed) {
@@ -379,13 +378,13 @@ export default function SettingsPage() {
         }
 
         setPrivacyMessage(
-            "Resume history deletion will be connected during backend integration."
+            "Resume history deletion is not connected yet."
         );
     };
 
     const handleDeleteAccount = () => {
         const confirmed = window.confirm(
-            "Permanently delete your account and all InterviewGPT data?"
+            "Permanently delete your account and all HirePilot data?"
         );
 
         if (!confirmed) {
@@ -393,7 +392,7 @@ export default function SettingsPage() {
         }
 
         setPrivacyMessage(
-            "Account deletion will be connected after the data-deletion workflow is finalized."
+            "Account deletion is not connected yet."
         );
     };
 
@@ -407,7 +406,9 @@ export default function SettingsPage() {
                     email={email}
                     memberSince={memberSince}
                     imageUrl={user?.imageUrl}
-                    onManageAccount={() => openUserProfile()}
+                    onManageAccount={() =>
+                        openUserProfile()
+                    }
                     onSignOut={() =>
                         signOut({
                             redirectUrl: "/sign-in",
@@ -415,91 +416,76 @@ export default function SettingsPage() {
                     }
                 />
 
-                {settingsError && (
-                    <p
-                        role="alert"
-                        className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
-                    >
-                        {settingsError}
-                    </p>
-                )}
-
                 <div className="grid gap-6 lg:grid-cols-2">
                     <InterviewPreferencesCard
                         duration={defaultDuration}
                         difficulty={defaultDifficulty}
                         language={preferredLanguage}
-                        isSaving={isSavingInterviewPreferences}
-                        message={interviewPreferencesMessage}
                         onDurationChange={(value) => {
                             setDefaultDuration(value);
-                            setInterviewPreferencesMessage("");
+                            clearFeedback();
                         }}
                         onDifficultyChange={(value) => {
                             setDefaultDifficulty(value);
-                            setInterviewPreferencesMessage("");
+                            clearFeedback();
                         }}
                         onLanguageChange={(value) => {
                             setPreferredLanguage(value);
-                            setInterviewPreferencesMessage("");
+                            clearFeedback();
                         }}
-                        onSave={
-                            handleSaveInterviewPreferences
-                        }
                     />
 
                     <AIPreferencesCard
                         coachingStyle={coachingStyle}
                         feedbackDetail={feedbackDetail}
-                        isSaving={isSavingAIPreferences}
-                        message={aiPreferencesMessage}
                         onCoachingStyleChange={(value) => {
                             setCoachingStyle(value);
-                            setAIPreferencesMessage("");
+                            clearFeedback();
                         }}
                         onFeedbackDetailChange={(value) => {
                             setFeedbackDetail(value);
-                            setAIPreferencesMessage("");
+                            clearFeedback();
                         }}
-                        onSave={handleSaveAIPreferences}
                     />
 
                     <NotificationsCard
                         weeklySummary={weeklySummary}
-                        interviewReminders={interviewReminders}
-                        resumeNotifications={resumeNotifications}
+                        interviewReminders={
+                            interviewReminders
+                        }
+                        resumeNotifications={
+                            resumeNotifications
+                        }
                         productUpdates={productUpdates}
-                        isSaving={isSavingNotifications}
-                        message={notificationsMessage}
                         onWeeklySummaryChange={(value) => {
                             setWeeklySummary(value);
-                            setNotificationsMessage("");
+                            clearFeedback();
                         }}
                         onInterviewRemindersChange={(value) => {
                             setInterviewReminders(value);
-                            setNotificationsMessage("");
+                            clearFeedback();
                         }}
                         onResumeNotificationsChange={(value) => {
                             setResumeNotifications(value);
-                            setNotificationsMessage("");
+                            clearFeedback();
                         }}
                         onProductUpdatesChange={(value) => {
                             setProductUpdates(value);
-                            setNotificationsMessage("");
+                            clearFeedback();
                         }}
-                        onSave={handleSaveNotifications}
                     />
 
                     <AppearanceCard
                         theme={theme}
-                        isSaving={isSavingAppearance}
-                        message={appearanceMessage}
                         onThemeChange={(value) => {
                             setTheme(value);
-                            setAppearanceMessage("");
+                            clearFeedback();
                         }}
-                        onSave={handleSaveAppearance}
                     />
+
+                    <div className="lg:col-span-2">
+                        <AboutSettingsCard version="1.0.0" />
+                    </div>
 
                     <div className="lg:col-span-2">
                         <PrivacyDataCard
@@ -510,7 +496,9 @@ export default function SettingsPage() {
                             onDeleteResumeHistory={
                                 handleDeleteResumeHistory
                             }
-                            onDeleteAccount={handleDeleteAccount}
+                            onDeleteAccount={
+                                handleDeleteAccount
+                            }
                         />
 
                         {privacyMessage && (
@@ -523,7 +511,28 @@ export default function SettingsPage() {
                         )}
                     </div>
 
-                    <AboutSettingsCard version="1.0.0" />
+                    <div className="lg:col-span-2">
+                        <SaveSettingsBar
+                            hasUnsavedChanges={
+                                hasUnsavedChanges
+                            }
+                            isSaving={
+                                isSavingSettings
+                            }
+                            message={
+                                settingsMessage
+                            }
+                            error={
+                                settingsError
+                            }
+                            onReset={
+                                handleResetSettings
+                            }
+                            onSave={
+                                handleSaveSettings
+                            }
+                        />
+                    </div>
                 </div>
             </div>
         </DashboardLayout>

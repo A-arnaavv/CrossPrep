@@ -3,16 +3,12 @@
 import {
     Monitor,
     Moon,
-    Save,
     Sun,
 } from "lucide-react";
 
 type AppearanceCardProps = {
     theme: string;
-    isSaving?: boolean;
-    message?: string;
     onThemeChange: (value: string) => void;
-    onSave: () => void;
 };
 
 const themes = [
@@ -20,7 +16,7 @@ const themes = [
         value: "light",
         label: "Light",
         description:
-            "Use a bright interface across InterviewGPT.",
+            "Use a bright interface across HirePilot.",
         icon: Sun,
     },
     {
@@ -41,10 +37,7 @@ const themes = [
 
 export default function AppearanceCard({
     theme,
-    isSaving = false,
-    message = "",
     onThemeChange,
-    onSave,
 }: AppearanceCardProps) {
     return (
         <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
@@ -58,8 +51,7 @@ export default function AppearanceCard({
                 </h2>
 
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                    Choose how InterviewGPT should look across your
-                    devices.
+                    Choose how HirePilot should look across your devices.
                 </p>
             </div>
 
@@ -77,7 +69,7 @@ export default function AppearanceCard({
                                 onThemeChange(option.value)
                             }
                             className={[
-                                "flex w-full items-start gap-4 rounded-2xl border p-4 text-left transition",
+                                "flex w-full items-start gap-4 rounded-2xl border p-4 text-left transition focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-2",
                                 selected
                                     ? "border-violet-300 bg-violet-50 ring-2 ring-violet-100"
                                     : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50",
@@ -122,37 +114,12 @@ export default function AppearanceCard({
                 })}
             </div>
 
-            <div className="mt-6 flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mt-6 border-t border-slate-200 pt-5">
                 <p className="text-sm text-slate-500">
-                    Theme switching will be enabled in a later polish
-                    pass.
+                    Theme switching will be enabled during the final
+                    application polish pass.
                 </p>
-
-                <button
-                    type="button"
-                    onClick={onSave}
-                    disabled={isSaving}
-                    className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                    <Save
-                        size={16}
-                        aria-hidden="true"
-                    />
-
-                    {isSaving
-                        ? "Saving..."
-                        : "Save Appearance"}
-                </button>
             </div>
-
-            {message && (
-                <p
-                    role="status"
-                    className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700"
-                >
-                    {message}
-                </p>
-            )}
         </section>
     );
 }

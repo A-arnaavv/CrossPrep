@@ -1,29 +1,27 @@
 "use client";
 
-import { Clock3, Globe2, Gauge, Save } from "lucide-react";
+import {
+    Clock3,
+    Globe2,
+    Gauge,
+} from "lucide-react";
 
 type InterviewPreferencesCardProps = {
     duration: string;
     difficulty: string;
     language: string;
-    isSaving?: boolean;
-    message?: string;
     onDurationChange: (value: string) => void;
     onDifficultyChange: (value: string) => void;
     onLanguageChange: (value: string) => void;
-    onSave: () => void;
 };
 
 export default function InterviewPreferencesCard({
     duration,
     difficulty,
     language,
-    isSaving = false,
-    message = "",
     onDurationChange,
     onDifficultyChange,
     onLanguageChange,
-    onSave,
 }: InterviewPreferencesCardProps) {
     return (
         <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
@@ -47,7 +45,10 @@ export default function InterviewPreferencesCard({
                         htmlFor="default-duration"
                         className="flex items-center gap-2 text-sm font-semibold text-slate-700"
                     >
-                        <Clock3 size={16} aria-hidden="true" />
+                        <Clock3
+                            size={16}
+                            aria-hidden="true"
+                        />
                         Default duration
                     </label>
 
@@ -55,14 +56,27 @@ export default function InterviewPreferencesCard({
                         id="default-duration"
                         value={duration}
                         onChange={(event) =>
-                            onDurationChange(event.target.value)
+                            onDurationChange(
+                                event.target.value
+                            )
                         }
                         className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100"
                     >
-                        <option value="15">15 minutes</option>
-                        <option value="30">30 minutes</option>
-                        <option value="45">45 minutes</option>
-                        <option value="60">60 minutes</option>
+                        <option value="15">
+                            15 minutes
+                        </option>
+
+                        <option value="30">
+                            30 minutes
+                        </option>
+
+                        <option value="45">
+                            45 minutes
+                        </option>
+
+                        <option value="60">
+                            60 minutes
+                        </option>
                     </select>
                 </div>
 
@@ -71,7 +85,10 @@ export default function InterviewPreferencesCard({
                         htmlFor="default-difficulty"
                         className="flex items-center gap-2 text-sm font-semibold text-slate-700"
                     >
-                        <Gauge size={16} aria-hidden="true" />
+                        <Gauge
+                            size={16}
+                            aria-hidden="true"
+                        />
                         Default difficulty
                     </label>
 
@@ -79,14 +96,27 @@ export default function InterviewPreferencesCard({
                         id="default-difficulty"
                         value={difficulty}
                         onChange={(event) =>
-                            onDifficultyChange(event.target.value)
+                            onDifficultyChange(
+                                event.target.value
+                            )
                         }
                         className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100"
                     >
-                        <option value="easy">Easy</option>
-                        <option value="medium">Medium</option>
-                        <option value="hard">Hard</option>
-                        <option value="adaptive">Adaptive</option>
+                        <option value="easy">
+                            Easy
+                        </option>
+
+                        <option value="medium">
+                            Medium
+                        </option>
+
+                        <option value="hard">
+                            Hard
+                        </option>
+
+                        <option value="adaptive">
+                            Adaptive
+                        </option>
                     </select>
                 </div>
 
@@ -95,7 +125,10 @@ export default function InterviewPreferencesCard({
                         htmlFor="preferred-language"
                         className="flex items-center gap-2 text-sm font-semibold text-slate-700"
                     >
-                        <Globe2 size={16} aria-hidden="true" />
+                        <Globe2
+                            size={16}
+                            aria-hidden="true"
+                        />
                         Preferred language
                     </label>
 
@@ -103,46 +136,40 @@ export default function InterviewPreferencesCard({
                         id="preferred-language"
                         value={language}
                         onChange={(event) =>
-                            onLanguageChange(event.target.value)
+                            onLanguageChange(
+                                event.target.value
+                            )
                         }
                         className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100"
                     >
-                        <option value="English">English</option>
-                        <option value="Hindi">Hindi</option>
-                        <option value="Spanish">Spanish</option>
-                        <option value="French">French</option>
-                        <option value="German">German</option>
+                        <option value="English">
+                            English
+                        </option>
+
+                        <option value="Hindi">
+                            Hindi
+                        </option>
+
+                        <option value="Spanish">
+                            Spanish
+                        </option>
+
+                        <option value="French">
+                            French
+                        </option>
+
+                        <option value="German">
+                            German
+                        </option>
                     </select>
                 </div>
             </div>
 
-            <div className="mt-6 flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mt-6 border-t border-slate-200 pt-5">
                 <p className="text-sm text-slate-500">
                     These defaults can still be changed before each session.
                 </p>
-
-                <button
-                    type="button"
-                    onClick={onSave}
-                    disabled={isSaving}
-                    className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                    <Save size={16} aria-hidden="true" />
-
-                    {isSaving
-                        ? "Saving..."
-                        : "Save Preferences"}
-                </button>
             </div>
-
-            {message && (
-                <p
-                    role="status"
-                    className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700"
-                >
-                    {message}
-                </p>
-            )}
         </section>
     );
 }
