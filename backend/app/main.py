@@ -28,6 +28,10 @@ from app.api.routes.profile import (
     router as profile_router,
 )
 
+from app.api.routes.settings import (
+    router as settings_router,
+)
+
 app = FastAPI(title="InterviewGPT API")
 
 app.add_middleware(
@@ -103,5 +107,10 @@ app.include_router(
 
 app.include_router(
     profile_router,
+    prefix="/api",
+)
+
+app.include_router(
+    settings_router,
     prefix="/api",
 )

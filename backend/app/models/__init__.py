@@ -8,3 +8,4 @@ from app.models.coding_interview_session import CodingInterviewSession
 from app.models.coding_interview_question import CodingInterviewQuestion
 from app.models.career_coach_report import CareerCoachReport
 from app.models.user_profile import UserProfile
+from app.models.user_settings import UserSettings
