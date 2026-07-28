@@ -1,5 +1,7 @@
 "use client";
 
+import Alert from "@/components/ui/Alert";
+
 type SaveProfileBarProps = {
     isSaving: boolean;
     hasUnsavedChanges: boolean;
@@ -48,21 +50,19 @@ export default function SaveProfileBar({
             </div>
 
             {message && (
-                <p
-                    role="status"
-                    className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700"
-                >
-                    {message}
-                </p>
+                <div className="mt-4">
+                    <Alert variant="success">
+                        {message}
+                    </Alert>
+                </div>
             )}
 
             {error && (
-                <p
-                    role="alert"
-                    className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
-                >
-                    {error}
-                </p>
+                <div className="mt-4">
+                    <Alert variant="error">
+                        {error}
+                    </Alert>
+                </div>
             )}
         </section>
     );

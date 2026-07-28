@@ -2,6 +2,9 @@ from sqlalchemy.orm import Session
 
 from app.models.resume import Resume
 
+from app.services.storage_service import (
+    StorageService,
+)
 
 class ResumeRepository:
     def __init__(self, db: Session):
@@ -119,3 +122,38 @@ class ResumeRepository:
             )
             .first()
         )
+
+    def delete_all_by_user(
+        self,
+        user_id,
+    ):
+        resumes = (
+            self.db.query(Resume)
+            .filter(
+                Resume.user_id == user_id
+            )
+            .all()
+        )
+
+        deleted_records = 0
+        deleted_files = 0
+
+        for resume in resumes:
+            file_deleted = (
+                StorageService.delete_file(
+                    resume.file_url
+                )
+            )
+
+            if file_deleted:
+                deleted_files += 1
+
+            self.db.delete(resume)
+            deleted_records += 1
+
+        self.db.commit()
+
+        return {
+            "deleted_records": deleted_records,
+            "deleted_files": deleted_files,
+        }

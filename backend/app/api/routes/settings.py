@@ -1,3 +1,13 @@
+import json
+from datetime import datetime
+
+from fastapi.responses import Response
+
+from app.models.resume import Resume
+from app.models.interview import Interview
+from app.models.user_profile import UserProfile
+from app.models.user_settings import UserSettings
+
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
@@ -16,7 +26,17 @@ from app.repositories.user_repository import (
 from app.schemas.settings_schema import (
     SettingsUpdate,
 )
+from app.repositories.interview_repository import (
+    InterviewRepository,
+)
 
+from app.repositories.resume_repository import (
+    ResumeRepository,
+)
+
+from app.services.account_deletion_service import (
+    AccountDeletionService,
+)
 
 router = APIRouter(
     prefix="/settings",
@@ -165,5 +185,299 @@ def update_settings(
         ),
         "settings": serialize_settings(
             updated_settings
+        ),
+    }
+
+@router.get("/export")
+def export_user_data(
+    clerk_id: str = Query(...),
+    db: Session = Depends(get_db),
+):
+    user_repo = UserRepository(db)
+
+    user = user_repo.get_by_clerk_id(
+        clerk_id
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found",
+        )
+
+    profile = (
+        db.query(UserProfile)
+        .filter(
+            UserProfile.user_id == user.id
+        )
+        .first()
+    )
+
+    settings = (
+        db.query(UserSettings)
+        .filter(
+            UserSettings.user_id == user.id
+        )
+        .first()
+    )
+
+    resumes = (
+        db.query(Resume)
+        .filter(
+            Resume.user_id == user.id
+        )
+        .order_by(
+            Resume.uploaded_at.desc()
+        )
+        .all()
+    )
+
+    interviews = (
+        db.query(Interview)
+        .filter(
+            Interview.user_id == user.id
+        )
+        .all()
+    )
+
+    export_data = {
+        "exported_at": (
+            datetime.utcnow().isoformat()
+        ),
+        "account": {
+            "id": str(user.id),
+            "clerk_id": user.clerk_id,
+            "email": user.email,
+            "name": user.name,
+        },
+        "profile": {
+            "bio": (
+                profile.bio
+                if profile
+                else None
+            ),
+            "target_role": (
+                profile.target_role
+                if profile
+                else None
+            ),
+            "experience_level": (
+                profile.experience_level
+                if profile
+                else None
+            ),
+            "preferred_companies": (
+                profile.preferred_companies
+                if profile
+                else []
+            ),
+            "linkedin_url": (
+                profile.linkedin_url
+                if profile
+                else None
+            ),
+            "github_url": (
+                profile.github_url
+                if profile
+                else None
+            ),
+            "portfolio_url": (
+                profile.portfolio_url
+                if profile
+                else None
+            ),
+        },
+        "settings": (
+            serialize_settings(settings)
+            if settings
+            else {
+                "default_interview_duration": 30,
+                "default_difficulty": "medium",
+                "preferred_language": "English",
+                "coaching_style": "balanced",
+                "feedback_detail": "standard",
+                "weekly_summary": True,
+                "interview_reminders": True,
+                "resume_notifications": True,
+                "product_updates": False,
+                "theme": "system",
+            }
+        ),
+        "resumes": [
+            {
+                "id": str(resume.id),
+                "file_url": resume.file_url,
+                "skills": resume.skills,
+                "projects": resume.projects,
+                "experience": resume.experience,
+                "education": resume.education,
+                "ats_score": resume.ats_score,
+                "strengths": resume.strengths,
+                "weaknesses": resume.weaknesses,
+                "missing_skills": (
+                    resume.missing_skills
+                ),
+                "recommendations": (
+                    resume.recommendations
+                ),
+                "uploaded_at": (
+                    resume.uploaded_at.isoformat()
+                    if resume.uploaded_at
+                    else None
+                ),
+            }
+            for resume in resumes
+        ],
+        "interviews": [
+            {
+                "id": str(interview.id),
+                "role": getattr(
+                    interview,
+                    "role",
+                    None,
+                ),
+                "level": getattr(
+                    interview,
+                    "level",
+                    None,
+                ),
+                "status": getattr(
+                    interview,
+                    "status",
+                    None,
+                ),
+                "created_at": (
+                    interview.created_at.isoformat()
+                    if getattr(
+                        interview,
+                        "created_at",
+                        None,
+                    )
+                    else None
+                ),
+            }
+            for interview in interviews
+        ],
+    }
+
+    file_content = json.dumps(
+        export_data,
+        indent=2,
+        ensure_ascii=False,
+        default=str,
+    )
+
+    filename = (
+        "hirepilot-data-"
+        f"{datetime.utcnow().strftime('%Y-%m-%d')}.json"
+    )
+
+    return Response(
+        content=file_content,
+        media_type="application/json",
+        headers={
+            "Content-Disposition": (
+                f'attachment; filename="{filename}"'
+            ),
+        },
+    )
+
+@router.delete("/interviews")
+def delete_interview_history(
+    clerk_id: str = Query(...),
+    db: Session = Depends(get_db),
+):
+    user_repo = UserRepository(db)
+
+    user = user_repo.get_by_clerk_id(
+        clerk_id
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found",
+        )
+
+    interview_repo = InterviewRepository(db)
+
+    deleted_count = (
+        interview_repo.delete_all_by_user(
+            user.id
+        )
+    )
+
+    return {
+        "message": (
+            "Interview history deleted successfully"
+        ),
+        "deleted_count": deleted_count,
+    }
+
+@router.delete("/resumes")
+def delete_resume_history(
+    clerk_id: str = Query(...),
+    db: Session = Depends(get_db),
+):
+    user_repo = UserRepository(db)
+
+    user = user_repo.get_by_clerk_id(
+        clerk_id
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found",
+        )
+
+    resume_repo = ResumeRepository(db)
+
+    result = resume_repo.delete_all_by_user(
+        user.id
+    )
+
+    return {
+        "message": (
+            "Resume history deleted successfully"
+        ),
+        "deleted_count": (
+            result["deleted_records"]
+        ),
+        "deleted_files": (
+            result["deleted_files"]
+        ),
+    }
+
+@router.delete("/account")
+def delete_account_data(
+    clerk_id: str = Query(...),
+    db: Session = Depends(get_db),
+):
+    user_repo = UserRepository(db)
+
+    user = user_repo.get_by_clerk_id(
+        clerk_id
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found",
+        )
+
+    result = (
+        AccountDeletionService.delete_user_data(
+            db=db,
+            user=user,
+        )
+    )
+
+    return {
+        "message": (
+            "Application account data deleted successfully"
+        ),
+        "deleted_files": (
+            result["deleted_files"]
         ),
     }

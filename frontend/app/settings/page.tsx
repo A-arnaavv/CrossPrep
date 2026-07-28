@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useClerk, useUser } from "@clerk/nextjs";
-
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 
@@ -15,6 +15,9 @@ import NotificationsCard from "./components/NotificationsCard";
 import PrivacyDataCard from "./components/PrivacyDataCard";
 import SaveSettingsBar from "./components/SaveSettingsBar";
 import SettingsHeader from "./components/SettingsHeader";
+import Alert from "@/components/ui/Alert";
+import PageSkeleton from "@/components/ui/PageSkeleton";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
 type SettingsData = {
     default_interview_duration: number;
@@ -54,6 +57,12 @@ const defaultSettings: SavedSettingsSnapshot = {
     productUpdates: false,
     theme: "system",
 };
+
+type ConfirmationAction =
+    | "delete-interviews"
+    | "delete-resumes"
+    | "delete-account"
+    | null;
 
 export default function SettingsPage() {
     const { user, isLoaded } = useUser();
@@ -106,6 +115,18 @@ export default function SettingsPage() {
 
     const [privacyMessage, setPrivacyMessage] =
         useState("");
+
+    const [
+        confirmationAction,
+        setConfirmationAction,
+    ] = useState<ConfirmationAction>(null);
+
+    const [
+        isProcessingPrivacyAction,
+        setIsProcessingPrivacyAction,
+    ] = useState(false);
+
+    const router = useRouter();
 
     useEffect(() => {
         const loadSettings = async () => {
@@ -248,20 +269,10 @@ export default function SettingsPage() {
     ) {
         return (
             <DashboardLayout>
-                <div className="mx-auto max-w-6xl animate-pulse space-y-8">
-                    <div className="space-y-3">
-                        <div className="h-4 w-32 rounded bg-slate-200" />
-                        <div className="h-10 w-52 rounded-lg bg-slate-200" />
-                        <div className="h-5 w-96 max-w-full rounded bg-slate-200" />
-                    </div>
-
-                    <div className="h-64 rounded-3xl bg-white" />
-
-                    <div className="grid gap-6 lg:grid-cols-2">
-                        <div className="h-72 rounded-3xl bg-white" />
-                        <div className="h-72 rounded-3xl bg-white" />
-                    </div>
-                </div>
+                <PageSkeleton
+                    showHero
+                    cardCount={4}
+                />
             </DashboardLayout>
         );
     }
@@ -348,53 +359,221 @@ export default function SettingsPage() {
         setSettingsError("");
     };
 
-    const handleExportData = () => {
-        setPrivacyMessage(
-            "Data export will be connected during the privacy backend integration."
-        );
-    };
-
-    const handleDeleteInterviewHistory = () => {
-        const confirmed = window.confirm(
-            "Clear all interview history? This action cannot be undone."
-        );
-
-        if (!confirmed) {
+    const handleExportData = async () => {
+        if (!user) {
+            setPrivacyMessage(
+                "Please sign in before exporting your data."
+            );
             return;
         }
 
-        setPrivacyMessage(
-            "Interview history deletion is not connected yet."
+        try {
+            setPrivacyMessage("");
+
+            const response = await api.get(
+                "/api/settings/export",
+                {
+                    params: {
+                        clerk_id: user.id,
+                    },
+                    responseType: "blob",
+                }
+            );
+
+            const blob = new Blob(
+                [response.data],
+                {
+                    type: "application/json",
+                }
+            );
+
+            const downloadUrl =
+                window.URL.createObjectURL(blob);
+
+            const link =
+                document.createElement("a");
+
+            link.href = downloadUrl;
+            link.download =
+                `hirepilot-data-${new Date()
+                    .toISOString()
+                    .slice(0, 10)}.json`;
+
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            window.URL.revokeObjectURL(
+                downloadUrl
+            );
+
+            setPrivacyMessage(
+                "Your data export has been downloaded."
+            );
+        } catch (error) {
+            console.error(
+                "Data export failed:",
+                error
+            );
+
+            setPrivacyMessage(
+                "We could not export your data. Please try again."
+            );
+        }
+    };
+
+    const handleDeleteInterviewHistory = () => {
+        setPrivacyMessage("");
+        setConfirmationAction(
+            "delete-interviews"
         );
     };
 
     const handleDeleteResumeHistory = () => {
-        const confirmed = window.confirm(
-            "Clear all resume history? This action cannot be undone."
-        );
-
-        if (!confirmed) {
-            return;
-        }
-
-        setPrivacyMessage(
-            "Resume history deletion is not connected yet."
+        setPrivacyMessage("");
+        setConfirmationAction(
+            "delete-resumes"
         );
     };
 
     const handleDeleteAccount = () => {
-        const confirmed = window.confirm(
-            "Permanently delete your account and all HirePilot data?"
+        setPrivacyMessage("");
+        setConfirmationAction(
+            "delete-account"
         );
+    };
 
-        if (!confirmed) {
+    const handleConfirmPrivacyAction = async () => {
+        if (!user || !confirmationAction) {
             return;
         }
 
-        setPrivacyMessage(
-            "Account deletion is not connected yet."
-        );
+        try {
+            setIsProcessingPrivacyAction(true);
+            setPrivacyMessage("");
+
+            if (
+                confirmationAction ===
+                "delete-interviews"
+            ) {
+                const response = await api.delete(
+                    "/api/settings/interviews",
+                    {
+                        params: {
+                            clerk_id: user.id,
+                        },
+                    }
+                );
+
+                const deletedCount =
+                    response.data.deleted_count ?? 0;
+
+                setPrivacyMessage(
+                    deletedCount > 0
+                        ? `${deletedCount} interview ${deletedCount === 1
+                            ? "record was"
+                            : "records were"
+                        } deleted successfully.`
+                        : "There was no interview history to delete."
+                );
+            }
+
+            if (
+                confirmationAction ===
+                "delete-resumes"
+            ) {
+                const response = await api.delete(
+                    "/api/settings/resumes",
+                    {
+                        params: {
+                            clerk_id: user.id,
+                        },
+                    }
+                );
+
+                const deletedCount =
+                    response.data.deleted_count ?? 0;
+
+                const deletedFiles =
+                    response.data.deleted_files ?? 0;
+
+                setPrivacyMessage(
+                    deletedCount > 0
+                        ? `${deletedCount} resume ${deletedCount === 1
+                            ? "record was"
+                            : "records were"
+                        } deleted successfully. ${deletedFiles} stored ${deletedFiles === 1
+                            ? "file was"
+                            : "files were"
+                        } removed.`
+                        : "There was no resume history to delete."
+                );
+            }
+
+            if (
+                confirmationAction ===
+                "delete-account"
+            ) {
+                await api.delete(
+                    "/api/settings/account",
+                    {
+                        params: {
+                            clerk_id: user.id,
+                        },
+                    }
+                );
+
+                setConfirmationAction(null);
+
+                await user.delete();
+
+                window.location.replace("/sign-up");
+
+                return;
+            }
+
+            setConfirmationAction(null);
+        } catch (error) {
+            console.error(
+                "Privacy action failed:",
+                error
+            );
+
+            setPrivacyMessage(
+                "We could not complete that action. Please try again."
+            );
+        } finally {
+            setIsProcessingPrivacyAction(false);
+        }
     };
+
+    const confirmationConfig = {
+        "delete-interviews": {
+            title: "Clear interview history?",
+            description:
+                "This will permanently remove all saved interview sessions and feedback. This action cannot be undone.",
+            confirmLabel: "Clear Interviews",
+        },
+        "delete-resumes": {
+            title: "Clear resume history?",
+            description:
+                "This will permanently remove uploaded resumes and their analysis. This action cannot be undone.",
+            confirmLabel: "Clear Resumes",
+        },
+        "delete-account": {
+            title: "Delete your account?",
+            description:
+                "This will permanently remove your HirePilot account and all associated data. This action cannot be undone.",
+            confirmLabel: "Delete Account",
+        },
+    } as const;
+
+    const activeConfirmation =
+        confirmationAction
+            ? confirmationConfig[
+            confirmationAction
+            ]
+            : null;
 
     return (
         <DashboardLayout>
@@ -502,12 +681,9 @@ export default function SettingsPage() {
                         />
 
                         {privacyMessage && (
-                            <p
-                                role="status"
-                                className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700"
-                            >
+                            <Alert variant="info">
                                 {privacyMessage}
-                            </p>
+                            </Alert>
                         )}
                     </div>
 
@@ -535,6 +711,29 @@ export default function SettingsPage() {
                     </div>
                 </div>
             </div>
+
+            {activeConfirmation && (
+                <ConfirmDialog
+                    open
+                    title={activeConfirmation.title}
+                    description={
+                        activeConfirmation.description
+                    }
+                    confirmLabel={
+                        activeConfirmation.confirmLabel
+                    }
+                    destructive
+                    isLoading={
+                        isProcessingPrivacyAction
+                    }
+                    onCancel={() =>
+                        setConfirmationAction(null)
+                    }
+                    onConfirm={
+                        handleConfirmPrivacyAction
+                    }
+                />
+            )}
         </DashboardLayout>
     );
 }

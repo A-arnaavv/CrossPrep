@@ -28,8 +28,27 @@ class StorageService:
             path,
             "wb",
         ) as file:
-            file.write(
-                file_bytes
-            )
+            file.write(file_bytes)
 
         return path
+
+    @staticmethod
+    def delete_file(
+        file_path: str,
+    ) -> bool:
+        if not file_path:
+            return False
+
+        try:
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+                return True
+
+            return False
+        except OSError as error:
+            print(
+                "Failed to delete stored file:",
+                file_path,
+                error,
+            )
+            return False

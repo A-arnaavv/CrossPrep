@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import {
-    AlertCircle,
     ArrowRight,
     BarChart3,
     RefreshCw,
@@ -17,7 +16,8 @@ import {
 import { useUser } from "@clerk/nextjs";
 
 import { api } from "@/lib/api";
-import BackToDashboard from "@/components/navigation/BackToDashboard";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import Alert from "@/components/ui/Alert";
 
 import AnalyticsHeader from "./components/AnalyticsHeader";
 import AnalyticsStats from "./components/AnalyticsStats";
@@ -57,35 +57,39 @@ function AnalyticsSkeleton() {
 }
 
 function AnalyticsError({
+    message,
     onRetry,
 }: {
+    message: string;
     onRetry: () => void;
 }) {
     return (
-        <div className="flex min-h-[420px] items-center justify-center rounded-[2rem] border border-rose-200 bg-white px-6 py-12 text-center shadow-sm">
-            <div className="max-w-md">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-100">
-                    <AlertCircle className="h-8 w-8 text-rose-600" />
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <Alert variant="error">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <p className="font-semibold">
+                            Analytics could not be loaded
+                        </p>
+
+                        <p className="mt-1 text-sm">
+                            {message}
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={onRetry}
+                        className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2"
+                    >
+                        <RefreshCw
+                            className="h-4 w-4"
+                            aria-hidden="true"
+                        />
+                        Try again
+                    </button>
                 </div>
-
-                <h2 className="mt-5 text-2xl font-bold text-slate-950">
-                    Analytics could not be loaded
-                </h2>
-
-                <p className="mt-3 text-sm leading-6 text-slate-500">
-                    We could not retrieve your interview data. Check
-                    your connection and try again.
-                </p>
-
-                <button
-                    type="button"
-                    onClick={onRetry}
-                    className="mt-6 inline-flex items-center gap-2 rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-700"
-                >
-                    <RefreshCw className="h-4 w-4" />
-                    Try again
-                </button>
-            </div>
+            </Alert>
         </div>
     );
 }
@@ -274,28 +278,27 @@ export default function AnalyticsPage() {
 
     if (!isLoaded || isLoading) {
         return (
-            <main className="min-h-screen bg-slate-50">
-                <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+            <DashboardLayout>
+                <div className="mx-auto max-w-6xl">
                     <AnalyticsSkeleton />
                 </div>
-            </main>
+            </DashboardLayout>
         );
     }
 
     if (!isSignedIn || !user) {
         return (
-            <main className="min-h-screen bg-slate-50">
-                <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                    <div className="flex min-h-[500px] items-center justify-center rounded-[2rem] border border-slate-200 bg-white px-6 text-center shadow-sm">
+            <DashboardLayout>
+                <div className="mx-auto max-w-6xl">
+                    <section className="flex min-h-[500px] items-center justify-center rounded-3xl border border-slate-200 bg-white px-6 text-center shadow-sm">
                         <div className="max-w-md">
                             <h1 className="text-2xl font-bold text-slate-950">
                                 Sign in to view analytics
                             </h1>
 
                             <p className="mt-3 text-sm leading-6 text-slate-500">
-                                Your interview performance and
-                                readiness analytics are linked to
-                                your account.
+                                Your interview performance and readiness
+                                analytics are linked to your account.
                             </p>
 
                             <Link
@@ -303,26 +306,30 @@ export default function AnalyticsPage() {
                                 className="mt-6 inline-flex items-center gap-2 rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-700"
                             >
                                 Sign in
-                                <ArrowRight className="h-4 w-4" />
+
+                                <ArrowRight
+                                    className="h-4 w-4"
+                                    aria-hidden="true"
+                                />
                             </Link>
                         </div>
-                    </div>
+                    </section>
                 </div>
-            </main>
+            </DashboardLayout>
         );
     }
 
     return (
-        <main className="min-h-screen bg-slate-50">
-            <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                <BackToDashboard />
-
-                <div className="mt-6">
-                    <AnalyticsHeader />
-                </div>
+        <DashboardLayout>
+            <div className="mx-auto max-w-6xl">
+                <AnalyticsHeader />
 
                 {error ? (
                     <AnalyticsError
+                        message={
+                            error ||
+                            "Unable to retrieve your interview analytics."
+                        }
                         onRetry={() => {
                             void loadAnalytics();
                         }}
@@ -365,6 +372,6 @@ export default function AnalyticsPage() {
                     </div>
                 )}
             </div>
-        </main>
+        </DashboardLayout>
     );
 }

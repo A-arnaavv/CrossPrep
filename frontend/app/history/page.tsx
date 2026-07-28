@@ -2,10 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useUser } from "@clerk/nextjs";
-import { AlertCircle } from "lucide-react";
-
 import { api } from "@/lib/api";
-import BackToDashboard from "@/components/navigation/BackToDashboard";
 
 import HistoryHeader from "./components/HistoryHeader";
 import HistoryStats from "./components/HistoryStats";
@@ -15,6 +12,8 @@ import HistoryFilters, {
 import InterviewHistoryCard from "./components/InterviewHistoryCard";
 import EmptyHistoryState from "./components/EmptyHistoryState";
 import HistorySkeleton from "./components/HistorySkeleton";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import Alert from "@/components/ui/Alert";
 
 import type {
     InterviewHistoryItem,
@@ -193,48 +192,37 @@ export default function HistoryPage() {
 
     if (!isLoaded || loading) {
         return (
-            <div className="min-h-screen bg-[#f8f9ff] text-slate-950">
-                <main className="mx-auto max-w-7xl px-5 py-6 sm:px-8 lg:px-10">
-                    <BackToDashboard />
-
-                    <div className="mt-5">
-                        <HistorySkeleton />
-                    </div>
-                </main>
-            </div>
+            <DashboardLayout>
+                <div className="mx-auto max-w-6xl">
+                    <HistorySkeleton />
+                </div>
+            </DashboardLayout>
         );
     }
 
     if (!user) {
         return (
-            <div className="min-h-screen bg-[#f8f9ff] text-slate-950">
-                <main className="mx-auto max-w-7xl px-5 py-6 sm:px-8 lg:px-10">
-                    <BackToDashboard />
-
-                    <section className="mt-5 rounded-[2rem] border border-slate-200 bg-white px-6 py-14 text-center shadow-sm">
+            <DashboardLayout>
+                <div className="mx-auto max-w-6xl">
+                    <section className="rounded-3xl border border-slate-200 bg-white px-6 py-14 text-center shadow-sm">
                         <h1 className="text-2xl font-bold text-slate-950">
                             Sign in to view your history
                         </h1>
 
                         <p className="mx-auto mt-3 max-w-xl leading-7 text-slate-500">
-                            Your interview sessions and
-                            performance insights will appear
-                            here after you sign in.
+                            Your interview sessions and performance insights
+                            will appear here after you sign in.
                         </p>
                     </section>
-                </main>
-            </div>
+                </div>
+            </DashboardLayout>
         );
     }
 
     return (
-        <div className="min-h-screen bg-[#f8f9ff] text-slate-950">
-            <main className="mx-auto max-w-7xl px-5 py-6 sm:px-8 lg:px-10">
-                <BackToDashboard />
-
-                <div className="mt-5">
-                    <HistoryHeader />
-                </div>
+        <DashboardLayout>
+            <div className="mx-auto max-w-6xl">
+                <HistoryHeader />
 
                 <div className="mt-8">
                     <HistoryStats interviews={interviews} />
@@ -273,20 +261,15 @@ export default function HistoryPage() {
 
                 <section className="mt-8">
                     {error ? (
-                        <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-5 text-red-700">
-                            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+                        <Alert variant="error">
+                            <p className="font-semibold">
+                                Interview history could not be loaded
+                            </p>
 
-                            <div>
-                                <p className="font-semibold">
-                                    Interview history could
-                                    not be loaded
-                                </p>
-
-                                <p className="mt-1 text-sm leading-6 text-red-600">
-                                    {error}
-                                </p>
-                            </div>
-                        </div>
+                            <p className="mt-1">
+                                {error}
+                            </p>
+                        </Alert>
                     ) : interviews.length === 0 ? (
                         <EmptyHistoryState />
                     ) : filteredInterviews.length === 0 ? (
@@ -331,7 +314,7 @@ export default function HistoryPage() {
                         </div>
                     )}
                 </section>
-            </main>
-        </div>
+            </div>
+        </DashboardLayout>
     );
 }

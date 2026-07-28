@@ -52,3 +52,24 @@ class InterviewRepository:
             )
             .all()
         )
+
+    def delete_all_by_user(
+        self,
+        user_id,
+    ):
+        interviews = (
+            self.db.query(Interview)
+            .filter(
+                Interview.user_id == user_id
+            )
+            .all()
+        )
+
+        deleted_count = len(interviews)
+
+        for interview in interviews:
+            self.db.delete(interview)
+
+        self.db.commit()
+
+        return deleted_count

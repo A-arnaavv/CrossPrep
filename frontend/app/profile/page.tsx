@@ -8,6 +8,8 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import CareerPreferencesCard from "./components/CareerPreferencesCard";
 import ProfessionalLinksCard from "./components/ProfessionalLinksCard";
 import SaveProfileBar from "./components/SaveProfileBar";
+import Alert from "@/components/ui/Alert";
+import PageSkeleton from "@/components/ui/PageSkeleton";
 import { api } from "@/lib/api";
 
 type ProfileData = {
@@ -173,18 +175,16 @@ export default function ProfilePage() {
         };
     }, [hasUnsavedChanges]);
 
-    if (!isLoaded || (user && isLoadingProfile)) {
+    if (
+        !isLoaded ||
+        (user && isLoadingProfile)
+    ) {
         return (
             <DashboardLayout>
-                <div className="mx-auto max-w-6xl animate-pulse space-y-8">
-                    <div className="space-y-3">
-                        <div className="h-4 w-32 rounded bg-slate-200" />
-                        <div className="h-10 w-48 rounded-lg bg-slate-200" />
-                        <div className="h-5 w-96 max-w-full rounded bg-slate-200" />
-                    </div>
-
-                    <div className="h-72 rounded-3xl bg-white" />
-                </div>
+                <PageSkeleton
+                    showHero
+                    cardCount={3}
+                />
             </DashboardLayout>
         );
     }
