@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str
     CLERK_SECRET_KEY: str
 
+    CLERK_ISSUER_URL: str
+    CLERK_AUTHORIZED_PARTIES: str
+
     class Config:
         env_file = ".env"
 

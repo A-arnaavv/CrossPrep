@@ -27,9 +27,6 @@ export default function CodingInterviewPage() {
 
     const { user } = useUser();
 
-    const [dbUserId, setDbUserId] =
-        useState("");
-
     const [role, setRole] =
         useState("");
 
@@ -77,10 +74,7 @@ export default function CodingInterviewPage() {
     const startInterview =
         async () => {
 
-            if (
-                !role ||
-                !dbUserId
-            ) {
+            if (!role) {
                 return;
             }
 
@@ -94,8 +88,6 @@ export default function CodingInterviewPage() {
                         null,
                         {
                             params: {
-                                user_id:
-                                    dbUserId,
                                 role,
                                 language,
                             },
@@ -142,35 +134,6 @@ export default function CodingInterviewPage() {
 
     useEffect(() => {
 
-        const loadDatabaseUser =
-            async () => {
-
-                if (!user) return;
-
-                try {
-
-                    const response =
-                        await api.get(
-                            `/api/users/clerk/${user.id}`
-                        );
-
-                    setDbUserId(
-                        response.data.id
-                    );
-
-                } catch (error) {
-
-                    console.error(error);
-
-                }
-            };
-
-        loadDatabaseUser();
-
-    }, [user]);
-
-    useEffect(() => {
-
         if (!question) {
             return;
         }
@@ -188,8 +151,7 @@ export default function CodingInterviewPage() {
 
             if (
                 !question ||
-                !code ||
-                !dbUserId
+                !code
             ) {
                 return;
             }
@@ -434,7 +396,6 @@ public:
                     language={language}
                     setLanguage={setLanguage}
                     loading={loadingAction == "start"}
-                    dbUserId={dbUserId}
                     startInterview={startInterview}
                 />
 

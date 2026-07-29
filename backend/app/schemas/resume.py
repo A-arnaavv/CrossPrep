@@ -1,21 +1,19 @@
 from pydantic import BaseModel
+from pydantic import Field
 
 
 class ResumeResponse(BaseModel):
     id: str
     file_url: str
 
-    projects: Mapped[dict] = mapped_column(
-        JSONB,
-        default=list,
+    projects: list[dict] = Field(
+        default_factory=list
     )
 
-    experience: Mapped[dict] = mapped_column(
-        JSONB,
-        default=list,
+    experience: list[dict] = Field(
+        default_factory=list
     )
 
-    education: Mapped[dict] = mapped_column(
-        JSONB,
-        default=list,
+    education: list[dict] = Field(
+        default_factory=list
     )

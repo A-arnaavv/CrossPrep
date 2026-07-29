@@ -1,14 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
 import { api } from "@/lib/api";
 
 export default function JobMatchPage() {
-    const { user } = useUser();
-
-    const [dbUserId, setDbUserId] =
-        useState("");
 
     const [jobTitle, setJobTitle] =
         useState("");
@@ -25,36 +20,12 @@ export default function JobMatchPage() {
     const [history, setHistory] =
         useState<any[]>([]);
 
-    useEffect(() => {
-        const loadDatabaseUser =
-            async () => {
-                if (!user) return;
-
-                try {
-                    const response =
-                        await api.get(
-                            `/api/users/clerk/${user.id}`
-                        );
-
-                    setDbUserId(
-                        response.data.id
-                    );
-                } catch (error) {
-                    console.error(error);
-                }
-            };
-
-        loadDatabaseUser();
-    }, [user]);
-
     const loadHistory =
         async () => {
-            if (!dbUserId) return;
-
             try {
                 const response =
                     await api.get(
-                        `/api/job-match/user/${dbUserId}`
+                        "/api/job-match/user"
                     );
 
                 setHistory(
@@ -66,17 +37,14 @@ export default function JobMatchPage() {
         };
 
     useEffect(() => {
-        if (dbUserId) {
-            loadHistory();
-        }
-    }, [dbUserId]);
+        loadHistory();
+    }, []);
 
     const handleAnalyze =
         async () => {
             if (
                 !jobTitle ||
-                !jobDescription ||
-                !dbUserId
+                !jobDescription
             ) {
                 return;
             }
@@ -90,8 +58,6 @@ export default function JobMatchPage() {
                         null,
                         {
                             params: {
-                                user_id:
-                                    dbUserId,
                                 job_title:
                                     jobTitle,
                                 job_description:

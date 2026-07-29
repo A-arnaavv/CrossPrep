@@ -2,75 +2,66 @@ from uuid import UUID
 
 from fastapi import APIRouter
 from fastapi import Depends
+from fastapi import HTTPException
 
 from sqlalchemy.orm import Session
 
+from app.auth.dependencies import (
+    get_current_user,
+)
 from app.dependencies import get_db
 
-from app.repositories.resume_repository import (
-    ResumeRepository,
-)
+from app.models.user import User
 
+from app.repositories.answer_repository import (
+    AnswerRepository,
+)
 from app.repositories.interview_repository import (
     InterviewRepository,
 )
-
 from app.repositories.question_repository import (
     QuestionRepository,
+)
+from app.repositories.resume_repository import (
+    ResumeRepository,
 )
 
 from app.services.gemini_service import (
     GeminiService,
 )
 
-from app.repositories.answer_repository import (
-    AnswerRepository,
-)
-
-from app.repositories.user_repository import (
-    UserRepository,
-)
 
 router = APIRouter()
 
 
 @router.post("/create")
 def create_interview(
-    clerk_id: str,
     role: str,
     level: str,
+    current_user: User = Depends(
+        get_current_user,
+    ),
     db: Session = Depends(get_db),
 ):
-    user_repo = UserRepository(db)
-
-    user = user_repo.get_by_clerk_id(
-        clerk_id
-    )
-
-    if not user:
-        return {
-            "error": "User not found"
-        }
-
     resume_repo = ResumeRepository(db)
 
-    resume = (
-        resume_repo.get_latest_by_user(
-            user.id
-        )
+    resume = resume_repo.get_latest_by_user(
+        current_user.id
     )
 
     if not resume:
-        return {
-            "error": "Resume not found"
-        }
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                "Upload a resume before creating "
+                "an interview."
+            ),
+        )
 
-    interview_repo = InterviewRepository(
-        db
-    )
+    interview_repo = InterviewRepository(db)
 
     interview = interview_repo.create(
-        user_id=user.id,
+        user_id=current_user.id,
         role=role,
         level=level,
     )
@@ -84,11 +75,21 @@ def create_interview(
         )
     )
 
-    questions = analysis["questions"]
-
-    question_repo = QuestionRepository(
-        db
+    questions = analysis.get(
+        "questions",
+        [],
     )
+
+    if not questions:
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "Interview questions could not "
+                "be generated."
+            ),
+        )
+
+    question_repo = QuestionRepository(db)
 
     question_repo.create_many(
         interview.id,
@@ -103,82 +104,36 @@ def create_interview(
     }
 
 
-@router.get("/{interview_id}")
-def get_interview(
-    interview_id: UUID,
-    db: Session = Depends(get_db),
-):
-    interview_repo = InterviewRepository(
-        db
-    )
-
-    interview = interview_repo.get_by_id(
-        interview_id
-    )
-
-    if not interview:
-        return {
-            "error": "Interview not found"
-        }
-
-    return {
-        "interview_id": str(
-            interview.id
-        ),
-        "role": interview.role,
-        "level": interview.level,
-        "questions": [
-            {
-                "id": str(question.id),
-                "question": question.question_text,
-                "order": question.order_index,
-            }
-            for question in interview.questions
-        ],
-    }
-
-
-@router.get("/user/{clerk_id}")
+# Keep this static route above /{interview_id}.
+@router.get("/user")
 def get_user_interviews(
-    clerk_id: str,
+    current_user: User = Depends(
+        get_current_user,
+    ),
     db: Session = Depends(get_db),
 ):
-    user_repo = UserRepository(db)
+    interview_repo = InterviewRepository(db)
 
-    user = user_repo.get_by_clerk_id(
-        clerk_id
+    interviews = interview_repo.get_by_user(
+        current_user.id
     )
 
-    if not user:
-        return []
-
-    interview_repo = InterviewRepository(
-        db
-    )
-
-    interviews = (
-        interview_repo.get_by_user(
-            user.id
-        )
-    )
-
-    answer_repo = AnswerRepository(
-        db
-    )
+    answer_repo = AnswerRepository(db)
 
     data = []
 
     for interview in interviews:
-
         question_ids = [
-            q.id
-            for q in interview.questions
+            question.id
+            for question in interview.questions
         ]
 
         answers = (
             answer_repo.get_all_by_question_ids(
                 question_ids
             )
+            if question_ids
+            else []
         )
 
         average_score = 0
@@ -214,22 +169,26 @@ def get_user_interviews(
 @router.get("/{interview_id}/report")
 def get_report(
     interview_id: UUID,
+    current_user: User = Depends(
+        get_current_user,
+    ),
     db: Session = Depends(get_db),
 ):
-    interview_repo = InterviewRepository(
-        db
-    )
+    interview_repo = InterviewRepository(db)
 
     interview = interview_repo.get_by_id(
         interview_id
     )
 
-    if not interview:
-        return {
-            "error": "Interview not found"
-        }
+    if (
+        not interview
+        or interview.user_id != current_user.id
+    ):
+        raise HTTPException(
+            status_code=404,
+            detail="Interview not found.",
+        )
 
-    # Create a lookup from question_id -> Question
     questions_by_id = {
         question.id: question
         for question in interview.questions
@@ -240,14 +199,14 @@ def get_report(
         for question in interview.questions
     ]
 
-    answer_repo = AnswerRepository(
-        db
-    )
+    answer_repo = AnswerRepository(db)
 
     answers = (
         answer_repo.get_all_by_question_ids(
             question_ids
         )
+        if question_ids
+        else []
     )
 
     average_score = 0
@@ -284,7 +243,6 @@ def get_report(
     report_questions = []
 
     for answer in answers:
-
         question = questions_by_id.get(
             answer.question_id
         )
@@ -301,7 +259,9 @@ def get_report(
                 ),
                 "score": answer.score,
                 "feedback": answer.feedback,
-                "ideal_answer": answer.ideal_answer,
+                "ideal_answer": (
+                    answer.ideal_answer
+                ),
                 "answer": answer.answer_text,
             }
         )
@@ -313,11 +273,59 @@ def get_report(
         "role": interview.role,
         "level": interview.level,
         "total_questions": total_questions,
-        "questions_answered": questions_answered,
-        "completion_percentage": completion_percentage,
+        "questions_answered": (
+            questions_answered
+        ),
+        "completion_percentage": (
+            completion_percentage
+        ),
         "average_score": round(
             average_score,
             2,
         ),
         "questions": report_questions,
+    }
+
+
+@router.get("/{interview_id}")
+def get_interview(
+    interview_id: UUID,
+    current_user: User = Depends(
+        get_current_user,
+    ),
+    db: Session = Depends(get_db),
+):
+    interview_repo = InterviewRepository(db)
+
+    interview = interview_repo.get_by_id(
+        interview_id
+    )
+
+    if (
+        not interview
+        or interview.user_id != current_user.id
+    ):
+        raise HTTPException(
+            status_code=404,
+            detail="Interview not found.",
+        )
+
+    return {
+        "interview_id": str(
+            interview.id
+        ),
+        "role": interview.role,
+        "level": interview.level,
+        "questions": [
+            {
+                "id": str(question.id),
+                "question": (
+                    question.question_text
+                ),
+                "order": (
+                    question.order_index
+                ),
+            }
+            for question in interview.questions
+        ],
     }

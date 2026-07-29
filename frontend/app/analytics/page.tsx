@@ -176,7 +176,7 @@ export default function AnalyticsPage() {
 
         try {
             const response = await api.get(
-                `/api/interviews/user/${user.id}`
+                `/api/interviews/user`
             );
 
             const analyticsData = Array.isArray(response.data)

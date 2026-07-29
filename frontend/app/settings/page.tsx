@@ -140,12 +140,7 @@ export default function SettingsPage() {
                 setSettingsError("");
 
                 const response = await api.get<SettingsData>(
-                    "/api/settings",
-                    {
-                        params: {
-                            clerk_id: user.id,
-                        },
-                    }
+                    "/api/settings"
                 );
 
                 const data = response.data;
@@ -312,7 +307,6 @@ export default function SettingsPage() {
             setSettingsError("");
 
             await api.put("/api/settings", {
-                clerk_id: user.id,
                 default_interview_duration:
                     Number(defaultDuration),
                 default_difficulty:
@@ -373,9 +367,6 @@ export default function SettingsPage() {
             const response = await api.get(
                 "/api/settings/export",
                 {
-                    params: {
-                        clerk_id: user.id,
-                    },
                     responseType: "blob",
                 }
             );
@@ -457,12 +448,7 @@ export default function SettingsPage() {
                 "delete-interviews"
             ) {
                 const response = await api.delete(
-                    "/api/settings/interviews",
-                    {
-                        params: {
-                            clerk_id: user.id,
-                        },
-                    }
+                    "/api/settings/interviews"
                 );
 
                 const deletedCount =
@@ -483,12 +469,7 @@ export default function SettingsPage() {
                 "delete-resumes"
             ) {
                 const response = await api.delete(
-                    "/api/settings/resumes",
-                    {
-                        params: {
-                            clerk_id: user.id,
-                        },
-                    }
+                    "/api/settings/resumes"
                 );
 
                 const deletedCount =
@@ -515,12 +496,7 @@ export default function SettingsPage() {
                 "delete-account"
             ) {
                 await api.delete(
-                    "/api/settings/account",
-                    {
-                        params: {
-                            clerk_id: user.id,
-                        },
-                    }
+                    "/api/settings/account"
                 );
 
                 setConfirmationAction(null);

@@ -149,10 +149,10 @@ export default function DashboardPage() {
                 activityResult,
             ] = await Promise.allSettled([
                 api.get(
-                    `/api/dashboard/stats/${user.id}`
+                    `/api/dashboard/stats`
                 ),
                 api.get(
-                    `/api/dashboard/activity/${user.id}`
+                    `/api/dashboard/activity`
                 ),
             ]);
 
@@ -203,6 +203,17 @@ export default function DashboardPage() {
 
         loadDashboard();
     }, [isLoaded, user?.id]);
+
+    useEffect(() => {
+        api.get("/api/auth/me")
+            .then((res) => {
+                console.log("AUTH SUCCESS", res.data);
+            })
+            .catch((err) => {
+                console.log("AUTH ERROR", err.response?.data);
+            });
+    }, []);
+
     return (
         <div className="h-screen overflow-hidden bg-[#f8f9ff] text-slate-950">
 

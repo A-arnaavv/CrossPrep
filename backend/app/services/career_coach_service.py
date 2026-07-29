@@ -4,7 +4,6 @@ import google.generativeai as genai
 
 from app.core.config import settings
 
-from app.repositories.user_repository import UserRepository
 from app.repositories.resume_repository import ResumeRepository
 from app.repositories.coding_interview_session_repository import CodingInterviewSessionRepository
 from app.repositories.interview_repository import InterviewRepository
@@ -137,48 +136,88 @@ Rules:
 
     @staticmethod
     def generate_for_user(
-        clerk_id: str,
+        user_id,
         db,
     ):
-        user_repo = UserRepository(db)
-
-        user = user_repo.get_by_clerk_id(
-            clerk_id
+        report_repo = (
+            CareerCoachReportRepository(db)
         )
 
-        if not user:
+        recent_report = (
+            report_repo.get_recent_by_user(
+                user_id
+            )
+        )
+
+        if recent_report:
             return {
-                "error": "User not found"
+                "career_readiness": (
+                    recent_report.career_readiness
+                ),
+                "summary": recent_report.summary,
+                "strengths": (
+                    recent_report.strengths
+                ),
+                "focus_areas": (
+                    recent_report.focus_areas
+                ),
+                "weekly_plan": (
+                    recent_report.weekly_plan
+                ),
+                "target_roles": (
+                    recent_report.target_roles
+                ),
+                "created_at": str(
+                    recent_report.created_at
+                ),
             }
 
         resume_repo = ResumeRepository(db)
 
-        latest_resume = resume_repo.get_latest_by_user(
-            user.id
+        latest_resume = (
+            resume_repo.get_latest_by_user(
+                user_id
+            )
         )
 
         if latest_resume:
             resume_data = {
-                "ats_score": latest_resume.ats_score,
+                "ats_score": (
+                    latest_resume.ats_score
+                ),
                 "skills": latest_resume.skills,
-                "strengths": latest_resume.strengths,
-                "weaknesses": latest_resume.weaknesses,
-                "missing_skills": latest_resume.missing_skills,
-                "recommendations": latest_resume.recommendations,
+                "strengths": (
+                    latest_resume.strengths
+                ),
+                "weaknesses": (
+                    latest_resume.weaknesses
+                ),
+                "missing_skills": (
+                    latest_resume.missing_skills
+                ),
+                "recommendations": (
+                    latest_resume.recommendations
+                ),
             }
         else:
             resume_data = {}
 
-        coding_repo = CodingInterviewSessionRepository(db)
+        coding_repo = (
+            CodingInterviewSessionRepository(db)
+        )
 
-        coding_sessions = coding_repo.get_sessions_by_user(
-            user.id
+        coding_sessions = (
+            coding_repo.get_sessions_by_user(
+                user_id
+            )
         )
 
         interview_repo = InterviewRepository(db)
 
-        behavioral_interviews = interview_repo.get_by_user(
-            user.id
+        behavioral_interviews = (
+            interview_repo.get_by_user(
+                user_id
+            )
         )
 
         interview_data = [
@@ -187,10 +226,14 @@ Rules:
                 "role": session.role,
                 "language": session.language,
                 "status": session.status,
-                "total_score": session.total_score,
+                "total_score": (
+                    session.total_score
+                ),
                 "summary": session.summary,
                 "strengths": session.strengths,
-                "improvements": session.improvements,
+                "improvements": (
+                    session.improvements
+                ),
             }
             for session in coding_sessions
         ]
@@ -207,7 +250,9 @@ Rules:
             ]
         )
 
-        total_resumes = 1 if latest_resume else 0
+        total_resumes = (
+            1 if latest_resume else 0
+        )
 
         total_interviews = (
             len(behavioral_interviews)
@@ -246,7 +291,9 @@ Rules:
 
         dashboard_stats = {
             "total_resumes": total_resumes,
-            "total_interviews": total_interviews,
+            "total_interviews": (
+                total_interviews
+            ),
             "average_score": round(
                 average_score,
                 2,
@@ -257,42 +304,19 @@ Rules:
             ),
         }
 
-        report = CareerCoachService.generate_coach_report(
-            resume_data=resume_data,
-            interview_data=interview_data,
-            dashboard_stats=dashboard_stats,
-        )
-
-        report_repo = CareerCoachReportRepository(
-            db
-        )
-
-        recent_report = (
-            report_repo.get_recent_by_user(
-                user.id
+        report = (
+            CareerCoachService
+            .generate_coach_report(
+                resume_data=resume_data,
+                interview_data=interview_data,
+                dashboard_stats=(
+                    dashboard_stats
+                ),
             )
         )
 
-        if recent_report:
-            return {
-                "career_readiness":
-                    recent_report.career_readiness,
-                "summary":
-                    recent_report.summary,
-                "strengths":
-                    recent_report.strengths,
-                "focus_areas":
-                    recent_report.focus_areas,
-                "weekly_plan":
-                    recent_report.weekly_plan,
-                "target_roles":
-                    recent_report.target_roles,
-                "created_at":
-                    str(recent_report.created_at),
-            }
-
         saved_report = report_repo.create(
-            user_id=user.id,
+            user_id=user_id,
             report=report,
         )
 

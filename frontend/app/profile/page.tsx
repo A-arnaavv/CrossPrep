@@ -91,12 +91,7 @@ export default function ProfilePage() {
                 setProfileError("");
 
                 const response = await api.get<ProfileData>(
-                    "/api/profile",
-                    {
-                        params: {
-                            clerk_id: user.id,
-                        },
-                    }
+                    "/api/profile"
                 );
 
                 const data = response.data;
@@ -241,7 +236,6 @@ export default function ProfilePage() {
             setProfileError("");
 
             await api.put("/api/profile", {
-                clerk_id: user.id,
                 bio: bio || null,
                 target_role: targetRole || null,
                 experience_level:

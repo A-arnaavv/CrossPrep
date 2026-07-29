@@ -63,7 +63,7 @@ export default function CareerCoachPage() {
 
             try {
                 const response = await api.get(
-                    `/api/career-coach/${user.id}`
+                    `/api/career-coach`
                 );
 
                 setReport(response.data);

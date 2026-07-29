@@ -19,7 +19,6 @@ type InterviewHeaderProps = {
     language: string;
     setLanguage: (value: string) => void;
     loading: boolean;
-    dbUserId: string;
     startInterview: () => void;
 };
 
@@ -30,7 +29,6 @@ export default function InterviewHeader({
     language,
     setLanguage,
     loading,
-    dbUserId,
     startInterview,
 }: InterviewHeaderProps) {
     if (question) {
@@ -182,8 +180,7 @@ export default function InterviewHeader({
                                     if (
                                         event.key === "Enter" &&
                                         !loading &&
-                                        role.trim() &&
-                                        dbUserId
+                                        role.trim()
                                     ) {
                                         startInterview();
                                     }
@@ -232,8 +229,7 @@ export default function InterviewHeader({
                             onClick={startInterview}
                             disabled={
                                 loading ||
-                                !role.trim() ||
-                                !dbUserId
+                                !role.trim()
                             }
                             className="flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
                         >
@@ -250,11 +246,6 @@ export default function InterviewHeader({
                             )}
                         </button>
 
-                        {!dbUserId && (
-                            <p className="text-center text-xs text-slate-500">
-                                Preparing your account...
-                            </p>
-                        )}
                     </div>
                 </div>
             </div>

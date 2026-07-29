@@ -77,8 +77,7 @@ export default function CreateInterviewPage() {
                 null,
                 {
                     params: {
-                        clerk_id: user.id,
-                        role: trimmedRole,
+                        role,
                         level,
                     },
                 }

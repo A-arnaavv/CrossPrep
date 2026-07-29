@@ -59,7 +59,7 @@ export default function HistoryPage() {
                 setError(null);
 
                 const response = await api.get(
-                    `/api/interviews/user/${user.id}`
+                    `/api/interviews/user`
                 );
 
                 const historyData = Array.isArray(response.data)

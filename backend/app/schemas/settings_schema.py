@@ -5,7 +5,6 @@ from pydantic import Field
 
 
 class SettingsUpdate(BaseModel):
-    clerk_id: str
 
     default_interview_duration: int = Field(
         default=30,

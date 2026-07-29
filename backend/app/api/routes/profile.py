@@ -1,17 +1,16 @@
 from fastapi import APIRouter
 from fastapi import Depends
-from fastapi import HTTPException
-from fastapi import Query
 
 from sqlalchemy.orm import Session
 
+from app.auth.dependencies import (
+    get_current_user,
+)
 from app.dependencies import get_db
+from app.models.user import User
 
 from app.repositories.profile_repository import (
     ProfileRepository,
-)
-from app.repositories.user_repository import (
-    UserRepository,
 )
 from app.schemas.profile_schema import (
     ProfileUpdate,
@@ -26,25 +25,15 @@ router = APIRouter(
 
 @router.get("")
 def get_profile(
-    clerk_id: str = Query(...),
+    current_user: User = Depends(
+        get_current_user,
+    ),
     db: Session = Depends(get_db),
 ):
-    user_repo = UserRepository(db)
-
-    user = user_repo.get_by_clerk_id(
-        clerk_id
-    )
-
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="User not found",
-        )
-
     profile_repo = ProfileRepository(db)
 
     profile = profile_repo.get_by_user_id(
-        user.id
+        current_user.id
     )
 
     if not profile:
@@ -76,29 +65,20 @@ def get_profile(
 @router.put("")
 def update_profile(
     payload: ProfileUpdate,
+    current_user: User = Depends(
+        get_current_user,
+    ),
     db: Session = Depends(get_db),
 ):
-    user_repo = UserRepository(db)
-
-    user = user_repo.get_by_clerk_id(
-        payload.clerk_id
-    )
-
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="User not found",
-        )
-
     profile_repo = ProfileRepository(db)
 
     profile = profile_repo.get_by_user_id(
-        user.id
+        current_user.id
     )
 
     if not profile:
         profile = profile_repo.create(
-            user.id
+            current_user.id
         )
 
     updated_profile = profile_repo.update(

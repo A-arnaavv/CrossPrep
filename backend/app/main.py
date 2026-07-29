@@ -32,6 +32,13 @@ from app.api.routes.settings import (
     router as settings_router,
 )
 
+from fastapi import Depends
+
+from app.auth.dependencies import (
+    get_current_user,
+)
+from app.models.user import User
+
 app = FastAPI(title="InterviewGPT API")
 
 app.add_middleware(
@@ -114,3 +121,16 @@ app.include_router(
     settings_router,
     prefix="/api",
 )
+
+@app.get("/api/auth/me")
+def authenticated_user(
+    current_user: User = Depends(
+        get_current_user
+    ),
+):
+    return {
+        "id": str(current_user.id),
+        "clerk_id": current_user.clerk_id,
+        "email": current_user.email,
+        "name": current_user.name,
+    }

@@ -1,42 +1,38 @@
 import json
 from datetime import datetime
 
+from fastapi import APIRouter
+from fastapi import Depends
 from fastapi.responses import Response
+from sqlalchemy.orm import Session
 
-from app.models.resume import Resume
+from app.auth.dependencies import get_current_user
+from app.dependencies import get_db
+
 from app.models.interview import Interview
+from app.models.resume import Resume
+from app.models.user import User
 from app.models.user_profile import UserProfile
 from app.models.user_settings import UserSettings
 
-from fastapi import APIRouter
-from fastapi import Depends
-from fastapi import HTTPException
-from fastapi import Query
-
-from sqlalchemy.orm import Session
-
-from app.dependencies import get_db
-
-from app.repositories.settings_repository import (
-    SettingsRepository,
-)
-from app.repositories.user_repository import (
-    UserRepository,
-)
-from app.schemas.settings_schema import (
-    SettingsUpdate,
-)
 from app.repositories.interview_repository import (
     InterviewRepository,
 )
-
 from app.repositories.resume_repository import (
     ResumeRepository,
+)
+from app.repositories.settings_repository import (
+    SettingsRepository,
+)
+
+from app.schemas.settings_schema import (
+    SettingsUpdate,
 )
 
 from app.services.account_deletion_service import (
     AccountDeletionService,
 )
+
 
 router = APIRouter(
     prefix="/settings",
@@ -44,7 +40,23 @@ router = APIRouter(
 )
 
 
-def serialize_settings(settings):
+DEFAULT_SETTINGS = {
+    "default_interview_duration": 30,
+    "default_difficulty": "medium",
+    "preferred_language": "English",
+    "coaching_style": "balanced",
+    "feedback_detail": "standard",
+    "weekly_summary": True,
+    "interview_reminders": True,
+    "resume_notifications": True,
+    "product_updates": False,
+    "theme": "system",
+}
+
+
+def serialize_settings(
+    settings: UserSettings,
+) -> dict:
     return {
         "default_interview_duration": (
             settings.default_interview_duration
@@ -79,40 +91,19 @@ def serialize_settings(settings):
 
 @router.get("")
 def get_settings(
-    clerk_id: str = Query(...),
+    current_user: User = Depends(
+        get_current_user,
+    ),
     db: Session = Depends(get_db),
 ):
-    user_repo = UserRepository(db)
-
-    user = user_repo.get_by_clerk_id(
-        clerk_id
-    )
-
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="User not found",
-        )
-
     settings_repo = SettingsRepository(db)
 
     settings = settings_repo.get_by_user_id(
-        user.id
+        current_user.id
     )
 
     if not settings:
-        return {
-            "default_interview_duration": 30,
-            "default_difficulty": "medium",
-            "preferred_language": "English",
-            "coaching_style": "balanced",
-            "feedback_detail": "standard",
-            "weekly_summary": True,
-            "interview_reminders": True,
-            "resume_notifications": True,
-            "product_updates": False,
-            "theme": "system",
-        }
+        return DEFAULT_SETTINGS.copy()
 
     return serialize_settings(settings)
 
@@ -120,29 +111,20 @@ def get_settings(
 @router.put("")
 def update_settings(
     payload: SettingsUpdate,
+    current_user: User = Depends(
+        get_current_user,
+    ),
     db: Session = Depends(get_db),
 ):
-    user_repo = UserRepository(db)
-
-    user = user_repo.get_by_clerk_id(
-        payload.clerk_id
-    )
-
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="User not found",
-        )
-
     settings_repo = SettingsRepository(db)
 
     settings = settings_repo.get_by_user_id(
-        user.id
+        current_user.id
     )
 
     if not settings:
         settings = settings_repo.create(
-            user.id
+            current_user.id
         )
 
     updated_settings = settings_repo.update(
@@ -188,22 +170,15 @@ def update_settings(
         ),
     }
 
+
 @router.get("/export")
 def export_user_data(
-    clerk_id: str = Query(...),
+    current_user: User = Depends(
+        get_current_user,
+    ),
     db: Session = Depends(get_db),
 ):
-    user_repo = UserRepository(db)
-
-    user = user_repo.get_by_clerk_id(
-        clerk_id
-    )
-
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="User not found",
-        )
+    user = current_user
 
     profile = (
         db.query(UserProfile)
@@ -290,18 +265,7 @@ def export_user_data(
         "settings": (
             serialize_settings(settings)
             if settings
-            else {
-                "default_interview_duration": 30,
-                "default_difficulty": "medium",
-                "preferred_language": "English",
-                "coaching_style": "balanced",
-                "feedback_detail": "standard",
-                "weekly_summary": True,
-                "interview_reminders": True,
-                "resume_notifications": True,
-                "product_updates": False,
-                "theme": "system",
-            }
+            else DEFAULT_SETTINGS.copy()
         ),
         "resumes": [
             {
@@ -382,28 +346,19 @@ def export_user_data(
         },
     )
 
+
 @router.delete("/interviews")
 def delete_interview_history(
-    clerk_id: str = Query(...),
+    current_user: User = Depends(
+        get_current_user,
+    ),
     db: Session = Depends(get_db),
 ):
-    user_repo = UserRepository(db)
-
-    user = user_repo.get_by_clerk_id(
-        clerk_id
-    )
-
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="User not found",
-        )
-
     interview_repo = InterviewRepository(db)
 
     deleted_count = (
         interview_repo.delete_all_by_user(
-            user.id
+            current_user.id
         )
     )
 
@@ -416,25 +371,15 @@ def delete_interview_history(
 
 @router.delete("/resumes")
 def delete_resume_history(
-    clerk_id: str = Query(...),
+    current_user: User = Depends(
+        get_current_user,
+    ),
     db: Session = Depends(get_db),
 ):
-    user_repo = UserRepository(db)
-
-    user = user_repo.get_by_clerk_id(
-        clerk_id
-    )
-
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="User not found",
-        )
-
     resume_repo = ResumeRepository(db)
 
     result = resume_repo.delete_all_by_user(
-        user.id
+        current_user.id
     )
 
     return {
@@ -449,27 +394,18 @@ def delete_resume_history(
         ),
     }
 
+
 @router.delete("/account")
 def delete_account_data(
-    clerk_id: str = Query(...),
+    current_user: User = Depends(
+        get_current_user,
+    ),
     db: Session = Depends(get_db),
 ):
-    user_repo = UserRepository(db)
-
-    user = user_repo.get_by_clerk_id(
-        clerk_id
-    )
-
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="User not found",
-        )
-
     result = (
         AccountDeletionService.delete_user_data(
             db=db,
-            user=user,
+            user=current_user,
         )
     )
 

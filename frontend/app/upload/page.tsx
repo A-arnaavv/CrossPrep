@@ -40,13 +40,11 @@ export default function UploadPage() {
                     await api.post(
                         "/api/users/sync",
                         {
-                            clerk_id: user.id,
                             email:
                                 user.primaryEmailAddress
                                     ?.emailAddress || "",
                             name:
-                                user.fullName ||
-                                "User",
+                                user.fullName || "User",
                         }
                     );
 
@@ -86,21 +84,10 @@ export default function UploadPage() {
                 file
             );
 
-            formData.append(
-                "clerk_id",
-                user.id
-            );
-
             const response =
                 await api.post(
                     "/api/resumes/upload",
-                    formData,
-                    {
-                        headers: {
-                            "Content-Type":
-                                "multipart/form-data",
-                        },
-                    }
+                    formData
                 );
 
             console.log(

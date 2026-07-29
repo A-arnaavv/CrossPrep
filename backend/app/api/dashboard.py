@@ -3,39 +3,34 @@ from fastapi import Depends
 
 from sqlalchemy.orm import Session
 
+from app.auth.dependencies import (
+    get_current_user,
+)
 from app.dependencies import get_db
 
 from app.models.user import User
 from app.models.resume import Resume
 from app.models.interview import Interview
 from app.models.answer import Answer
-from app.models.coding_interview_session import CodingInterviewSession
+from app.models.coding_interview_session import (
+    CodingInterviewSession,
+)
+
 
 router = APIRouter()
 
 
-@router.get("/stats/{clerk_id}")
+@router.get("/stats")
 def get_dashboard_stats(
-    clerk_id: str,
+    current_user: User = Depends(
+        get_current_user,
+    ),
     db: Session = Depends(get_db),
 ):
-    user = (
-        db.query(User)
-        .filter(
-            User.clerk_id == clerk_id
-        )
-        .first()
-    )
-
-    if not user:
-        return {
-            "error": "User not found"
-        }
-
     total_resumes = (
         db.query(Resume)
         .filter(
-            Resume.user_id == user.id
+            Resume.user_id == current_user.id
         )
         .count()
     )
@@ -43,14 +38,12 @@ def get_dashboard_stats(
     interviews = (
         db.query(Interview)
         .filter(
-            Interview.user_id == user.id
+            Interview.user_id == current_user.id
         )
         .all()
     )
 
-    total_interviews = len(
-        interviews
-    )
+    total_interviews = len(interviews)
 
     question_ids = []
 
@@ -84,11 +77,11 @@ def get_dashboard_stats(
             / len(answers)
         )
 
-    completion_percentage = 0
-
     total_questions = len(
         question_ids
     )
+
+    completion_percentage = 0
 
     if total_questions:
         completion_percentage = (
@@ -97,42 +90,30 @@ def get_dashboard_stats(
         ) * 100
 
     return {
-        "total_resumes":
-            total_resumes,
-        "total_interviews":
-            total_interviews,
-        "average_score":
-            round(
-                average_score,
-                2
-            ),
-        "completion_percentage":
-            round(
-                completion_percentage,
-                2
-            ),
+        "total_resumes": total_resumes,
+        "total_interviews": total_interviews,
+        "average_score": round(
+            average_score,
+            2,
+        ),
+        "completion_percentage": round(
+            completion_percentage,
+            2,
+        ),
     }
 
-@router.get("/activity/{clerk_id}")
+
+@router.get("/activity")
 def get_recent_activity(
-    clerk_id: str,
+    current_user: User = Depends(
+        get_current_user,
+    ),
     db: Session = Depends(get_db),
 ):
-    user = (
-        db.query(User)
-        .filter(
-            User.clerk_id == clerk_id
-        )
-        .first()
-    )
-
-    if not user:
-        return []
-
     behavioral_interviews = (
         db.query(Interview)
         .filter(
-            Interview.user_id == user.id
+            Interview.user_id == current_user.id
         )
         .order_by(
             Interview.created_at.desc()
@@ -147,7 +128,7 @@ def get_recent_activity(
         )
         .filter(
             CodingInterviewSession.user_id
-            == user.id
+            == current_user.id
         )
         .order_by(
             CodingInterviewSession.created_at.desc()
@@ -176,16 +157,19 @@ def get_recent_activity(
             else None
         )
 
-        activity.append({
-            "type": "behavioral",
-            "role": interview.role,
-            "level": interview.level,
-            "status": interview.status,
-            "created_at": interview.created_at,
-            "coding_score": None,
-            "behavioral_score":
-                behavioral_score,
-        })
+        activity.append(
+            {
+                "type": "behavioral",
+                "role": interview.role,
+                "level": interview.level,
+                "status": interview.status,
+                "created_at": interview.created_at,
+                "coding_score": None,
+                "behavioral_score": (
+                    behavioral_score
+                ),
+            }
+        )
 
     for session in coding_sessions:
         coding_score = (
@@ -198,20 +182,22 @@ def get_recent_activity(
             else None
         )
 
-        activity.append({
-            "type": "coding",
-            "role": session.role,
-            "level": session.language,
-            "status": session.status,
-            "created_at": session.created_at,
-            "coding_score":
-                coding_score,
-            "behavioral_score": None,
-        })
+        activity.append(
+            {
+                "type": "coding",
+                "role": session.role,
+                "level": session.language,
+                "status": session.status,
+                "created_at": session.created_at,
+                "coding_score": coding_score,
+                "behavioral_score": None,
+            }
+        )
 
     activity.sort(
-        key=lambda item:
-            item["created_at"],
+        key=lambda item: item[
+            "created_at"
+        ],
         reverse=True,
     )
 

@@ -3,8 +3,6 @@ from pydantic import BaseModel
 
 class ProfileUpdate(BaseModel):
 
-    clerk_id: str
-
     bio: str | None = None
 
     target_role: str | None = None

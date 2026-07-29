@@ -1,21 +1,21 @@
-from app.models import coding_interview_question
 from uuid import UUID
 
 from fastapi import APIRouter
 from fastapi import Depends
+from fastapi import HTTPException
 
 from sqlalchemy.orm import Session
 
+from app.auth.dependencies import (
+    get_current_user,
+)
 from app.dependencies import get_db
 
-from app.services.coding_interview_service import (
-    CodingInterviewService,
-)
+from app.models.user import User
 
 from app.repositories.coding_interview_repository import (
     CodingInterviewRepository,
 )
-
 from app.repositories.coding_interview_session_repository import (
     CodingInterviewSessionRepository,
 )
@@ -23,6 +23,10 @@ from app.repositories.coding_interview_session_repository import (
 from app.services.code_execution_service import (
     CodeExecutionService,
 )
+from app.services.coding_interview_service import (
+    CodingInterviewService,
+)
+
 
 router = APIRouter()
 
@@ -31,6 +35,9 @@ router = APIRouter()
 def generate_question(
     role: str,
     language: str,
+    current_user: User = Depends(
+        get_current_user,
+    ),
 ):
     return (
         CodingInterviewService.generate_question(
@@ -42,11 +49,13 @@ def generate_question(
 
 @router.post("/submit")
 def submit_code(
-    user_id: UUID,
     role: str,
     language: str,
     question: str,
     code: str,
+    current_user: User = Depends(
+        get_current_user,
+    ),
     db: Session = Depends(get_db),
 ):
     evaluation = (
@@ -56,12 +65,10 @@ def submit_code(
         )
     )
 
-    repo = CodingInterviewRepository(
-        db
-    )
+    repo = CodingInterviewRepository(db)
 
     interview = repo.create(
-        user_id=user_id,
+        user_id=current_user.id,
         role=role,
         language=language,
         question=question,
@@ -79,24 +86,22 @@ def submit_code(
     }
 
 
-@router.get("/user/{user_id}")
+@router.get("/user")
 def get_history(
-    user_id: UUID,
+    current_user: User = Depends(
+        get_current_user,
+    ),
     db: Session = Depends(get_db),
 ):
-    repo = CodingInterviewRepository(
-        db
-    )
+    repo = CodingInterviewRepository(db)
 
     interviews = repo.get_by_user(
-        user_id
+        current_user.id
     )
 
     return [
         {
-            "id": str(
-                interview.id
-            ),
+            "id": str(interview.id),
             "role": interview.role,
             "language": interview.language,
             "score": interview.score,
@@ -107,26 +112,26 @@ def get_history(
         for interview in interviews
     ]
 
+
 @router.post("/start-session")
 def start_session(
-    user_id: UUID,
     role: str,
     language: str,
+    current_user: User = Depends(
+        get_current_user,
+    ),
     db: Session = Depends(get_db),
 ):
-
     repo = (
         CodingInterviewSessionRepository(
             db
         )
     )
 
-    session = (
-        repo.create_session(
-            user_id=user_id,
-            role=role,
-            language=language,
-        )
+    session = repo.create_session(
+        user_id=current_user.id,
+        role=role,
+        language=language,
     )
 
     questions = (
@@ -144,54 +149,95 @@ def start_session(
         )
     )
 
+    if not saved_questions:
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "Coding interview questions "
+                "could not be generated."
+            ),
+        )
+
+    first_question = saved_questions[0]
+
     return {
         "session_id": str(
             session.id
         ),
         "current_question": {
             "id": str(
-                saved_questions[0].id
+                first_question.id
             ),
-            "question_number": 1,
-            "total_questions": 4,
-            "title":
-                saved_questions[0].title,
-            "difficulty":
-                saved_questions[0].difficulty,
-            "question":
-                saved_questions[0].question,
+            "question_number": (
+                first_question.question_number
+            ),
+            "total_questions": len(
+                saved_questions
+            ),
+            "title": first_question.title,
+            "difficulty": (
+                first_question.difficulty
+            ),
+            "question": (
+                first_question.question
+            ),
         },
     }
+
 
 @router.post("/session-submit")
 def submit_session_question(
     session_id: UUID,
     question_id: UUID,
     code: str,
+    current_user: User = Depends(
+        get_current_user,
+    ),
     db: Session = Depends(get_db),
 ):
-
     repo = (
         CodingInterviewSessionRepository(
             db
         )
     )
 
-    question = (
-        repo.get_question_by_id(
-            question_id
-        )
+    session = repo.get_session_by_id(
+        session_id
     )
 
-    if not question:
-        return {
-            "error":
-                "Question not found"
-        }
+    if (
+        not session
+        or session.user_id != current_user.id
+    ):
+        raise HTTPException(
+            status_code=404,
+            detail="Coding interview session not found.",
+        )
+
+    question = repo.get_question_by_id(
+        question_id
+    )
+
+    if (
+        not question
+        or question.session_id != session.id
+    ):
+        raise HTTPException(
+            status_code=404,
+            detail="Coding interview question not found.",
+        )
+
+    if question.completed:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "This coding interview question "
+                "has already been submitted."
+            ),
+        )
 
     evaluation = (
-        CodingInterviewService
-        .evaluate_code(
+        CodingInterviewService.evaluate_code(
             question=question.question,
             code=code,
         )
@@ -204,29 +250,24 @@ def submit_session_question(
         feedback=evaluation["feedback"],
     )
 
-    session = (
-        repo.get_session_by_id(
-            session_id
-        )
-    )
-
     questions = (
         repo.get_questions_by_session(
-            session_id
+            session.id
         )
     )
 
     total_score = sum(
-        q.score
-        for q in questions
+        question_item.score or 0
+        for question_item in questions
     )
+
+    total_questions = len(questions)
 
     next_number = (
         question.question_number + 1
     )
 
-    if next_number <= 4:
-
+    if next_number <= total_questions:
         repo.update_session_progress(
             session_id=session.id,
             current_question=next_number,
@@ -236,90 +277,119 @@ def submit_session_question(
 
         next_question = (
             repo.get_next_question(
-                session_id,
+                session.id,
                 next_number,
             )
         )
 
+        if not next_question:
+            raise HTTPException(
+                status_code=500,
+                detail=(
+                    "The next coding interview "
+                    "question could not be loaded."
+                ),
+            )
+
         return {
             "completed": False,
-            "score":
-                evaluation["score"],
-            "feedback":
-                evaluation["feedback"],
+            "score": evaluation["score"],
+            "feedback": (
+                evaluation["feedback"]
+            ),
             "next_question": {
                 "id": str(
                     next_question.id
                 ),
-                "question_number":
-                    next_question.question_number,
-                "title":
-                    next_question.title,
-                "difficulty":
-                    next_question.difficulty,
-                "question":
-                    next_question.question,
+                "question_number": (
+                    next_question.question_number
+                ),
+                "title": next_question.title,
+                "difficulty": (
+                    next_question.difficulty
+                ),
+                "question": (
+                    next_question.question
+                ),
             },
         }
 
     repo.update_session_progress(
         session_id=session.id,
-        current_question=4,
+        current_question=total_questions,
         total_score=total_score,
         status="completed",
     )
-    average_score = round(
-        total_score / 4,
-        2,
+
+    average_score = (
+        round(
+            total_score / total_questions,
+            2,
+        )
+        if total_questions > 0
+        else 0
     )
 
     question_results = [
-    {
-        "number": q.question_number,
-        "title": q.title,
-        "difficulty": q.difficulty,
-        "score": q.score,
-        "feedback": q.feedback,
-        "code": q.code,
-    }
-    for q in questions
-]
+        {
+            "number": (
+                question_item.question_number
+            ),
+            "title": question_item.title,
+            "difficulty": (
+                question_item.difficulty
+            ),
+            "score": (
+                question_item.score
+            ),
+            "feedback": (
+                question_item.feedback
+            ),
+            "code": question_item.code,
+        }
+        for question_item in questions
+    ]
 
     ai_report = (
-    CodingInterviewService.generate_final_report(
-        role=session.role,
-        language=session.language,
-        total_score=total_score,
-        average_score=average_score,
-        questions=question_results,
+        CodingInterviewService
+        .generate_final_report(
+            role=session.role,
+            language=session.language,
+            total_score=total_score,
+            average_score=average_score,
+            questions=question_results,
+        )
     )
-    )
+
     repo.save_final_report(
         session_id=session.id,
         summary=ai_report["summary"],
         strengths=ai_report["strengths"],
-        improvements=ai_report["improvements"],
-        recommendations=ai_report["recommendations"],
+        improvements=(
+            ai_report["improvements"]
+        ),
+        recommendations=(
+            ai_report["recommendations"]
+        ),
     )
 
     return {
-    "completed": True,
-    "total_score": total_score,
-    "average_score": average_score,
-    "questions": question_results,
+        "completed": True,
+        "total_score": total_score,
+        "average_score": average_score,
+        "questions": question_results,
+        "summary": ai_report["summary"],
+        "strengths": (
+            ai_report["strengths"]
+        ),
+        "improvements": (
+            ai_report["improvements"]
+        ),
+        "recommendations": (
+            ai_report["recommendations"]
+        ),
+    }
 
-    "summary":
-        ai_report["summary"],
-
-    "strengths":
-        ai_report["strengths"],
-
-    "improvements":
-        ai_report["improvements"],
-
-    "recommendations":
-        ai_report["recommendations"],
-}
 
 @router.post("/run-code")
 def run_code(
@@ -327,11 +397,12 @@ def run_code(
     code: str,
     function_name: str | None = None,
     test_cases: str | None = None,
+    current_user: User = Depends(
+        get_current_user,
+    ),
 ):
-
     if language == "Python":
         if function_name and test_cases:
-
             return (
                 CodeExecutionService
                 .run_python_tests(
@@ -347,7 +418,6 @@ def run_code(
         )
 
     if language == "JavaScript":
-
         return (
             CodeExecutionService
             .run_javascript(code)
@@ -355,63 +425,97 @@ def run_code(
 
     return {
         "success": False,
-        "output":
-            "Run Code currently supports Python and JavaScript only."
+        "output": (
+            "Run Code currently supports "
+            "Python and JavaScript only."
+        ),
     }
+
 
 @router.get("/session-report/{session_id}")
 def get_session_report(
     session_id: UUID,
+    current_user: User = Depends(
+        get_current_user,
+    ),
     db: Session = Depends(get_db),
 ):
-
     repo = (
         CodingInterviewSessionRepository(
             db
         )
     )
 
-    session = (
-        repo.get_session_by_id(
-            session_id
-        )
+    session = repo.get_session_by_id(
+        session_id
     )
 
-    if not session:
-        return {
-            "error": "Session not found"
-        }
+    if (
+        not session
+        or session.user_id != current_user.id
+    ):
+        raise HTTPException(
+            status_code=404,
+            detail="Coding interview session not found.",
+        )
 
     questions = (
         repo.get_questions_by_session(
-            session_id
+            session.id
         )
     )
 
+    total_questions = len(questions)
+
+    average_score = (
+        round(
+            session.total_score
+            / total_questions,
+            2,
+        )
+        if total_questions > 0
+        else 0
+    )
+
     return {
-        "session_id": str(session.id),
+        "session_id": str(
+            session.id
+        ),
         "role": session.role,
         "language": session.language,
         "status": session.status,
-        "total_score": session.total_score,
-        "average_score": round(
-            session.total_score / 4,
-            2,
+        "total_score": (
+            session.total_score
         ),
+        "average_score": average_score,
         "summary": session.summary,
-        "strengths": session.strengths or [],
-        "improvements": session.improvements or [],
-        "recommendations": session.recommendations or [],
+        "strengths": (
+            session.strengths or []
+        ),
+        "improvements": (
+            session.improvements or []
+        ),
+        "recommendations": (
+            session.recommendations or []
+        ),
         "questions": [
             {
-                "number": q.question_number,
-                "title": q.title,
-                "difficulty": q.difficulty,
-                "score": q.score,
-                "feedback": q.feedback,
-                "code": q.code,
-                "completed": q.completed,
+                "number": (
+                    question.question_number
+                ),
+                "title": question.title,
+                "difficulty": (
+                    question.difficulty
+                ),
+                "score": question.score,
+                "feedback": (
+                    question.feedback
+                ),
+                "code": question.code,
+                "completed": (
+                    question.completed
+                ),
             }
-            for q in questions
+            for question in questions
         ],
     }
