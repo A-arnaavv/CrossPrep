@@ -32,13 +32,11 @@ export default function HeroSection() {
                             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-violet-400 opacity-40" />
                             <span className="relative inline-flex h-2 w-2 rounded-full bg-violet-600" />
                         </span>
-
                         Your complete AI career preparation workspace
                     </div>
 
                     <h1 className="mt-8 text-5xl font-bold leading-[1.03] tracking-[-0.05em] text-slate-950 sm:text-6xl lg:text-[5.2rem]">
                         Prepare smarter.
-
                         <span className="block text-violet-600">
                             Perform with confidence.
                         </span>
@@ -56,7 +54,6 @@ export default function HeroSection() {
                             className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-violet-600 px-7 py-4 font-semibold text-white shadow-xl shadow-violet-200 transition hover:-translate-y-0.5 hover:bg-violet-700"
                         >
                             Start preparing
-
                             <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />
                         </Link>
 
@@ -65,7 +62,6 @@ export default function HeroSection() {
                             className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-7 py-4 font-semibold text-slate-700 shadow-sm transition hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700"
                         >
                             <Play className="h-4 w-4 fill-current" />
-
                             Explore CrossPrep
                         </Link>
                     </div>
@@ -92,7 +88,7 @@ export default function HeroSection() {
                                         </p>
 
                                         <h2 className="mt-1 text-2xl font-bold text-slate-950 sm:text-3xl">
-                                            Welcome back, Arnav
+                                            Welcome back, Candidate
                                         </h2>
 
                                         <p className="mt-2 text-sm text-slate-500 sm:text-base">
@@ -103,6 +99,7 @@ export default function HeroSection() {
                                     <div className="flex items-center gap-3">
                                         <button
                                             type="button"
+                                            aria-label="Notifications"
                                             className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm"
                                         >
                                             <Bell className="h-5 w-5" />
@@ -113,7 +110,6 @@ export default function HeroSection() {
                                             className="inline-flex items-center justify-center gap-2 rounded-2xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-200"
                                         >
                                             <FileSearch className="h-4 w-4" />
-
                                             Upload Resume
                                         </button>
                                     </div>
@@ -124,7 +120,7 @@ export default function HeroSection() {
                                         icon={<FileSearch className="h-5 w-5" />}
                                         iconClass="bg-violet-100 text-violet-700"
                                         label="Resumes"
-                                        value="45"
+                                        value="3"
                                         detail="Total uploaded"
                                     />
 
@@ -132,15 +128,15 @@ export default function HeroSection() {
                                         icon={<MessagesSquare className="h-5 w-5" />}
                                         iconClass="bg-emerald-100 text-emerald-700"
                                         label="Interviews"
-                                        value="25"
+                                        value="8"
                                         detail="Total sessions"
                                     />
 
                                     <MetricCard
                                         icon={<Target className="h-5 w-5" />}
                                         iconClass="bg-blue-100 text-blue-700"
-                                        label="Average score"
-                                        value="2.3"
+                                        label="Average Score"
+                                        value="8.4"
                                         detail="Across interviews"
                                     />
 
@@ -148,7 +144,7 @@ export default function HeroSection() {
                                         icon={<TrendingUp className="h-5 w-5" />}
                                         iconClass="bg-orange-100 text-orange-600"
                                         label="Completion"
-                                        value="49.47%"
+                                        value="72%"
                                         detail="Progress rate"
                                     />
                                 </div>
@@ -172,7 +168,7 @@ export default function HeroSection() {
                         className="landing-float -right-8 bottom-36 hidden xl:block"
                         icon={<TrendingUp className="h-5 w-5" />}
                         title="Progress updated"
-                        detail="New activity recorded"
+                        detail="Readiness increased by 12%"
                     />
                 </div>
             </div>
@@ -251,7 +247,6 @@ function DashboardSidebar() {
                                 ].join(" ")}
                             >
                                 <Icon className="h-5 w-5" />
-
                                 {item.label}
                             </div>
                         );
@@ -262,16 +257,16 @@ function DashboardSidebar() {
             <div className="border-t border-slate-100 p-5">
                 <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-4">
                     <div className="flex h-11 w-11 items-center justify-center rounded-full bg-violet-600 font-bold text-white">
-                        A
+                        D
                     </div>
 
                     <div className="min-w-0">
                         <p className="truncate font-bold text-slate-900">
-                            Arnav Aggarwal
+                            Demo Candidate
                         </p>
 
                         <p className="truncate text-xs text-slate-500">
-                            arnav@example.com
+                            Software Engineer
                         </p>
                     </div>
                 </div>
@@ -317,8 +312,8 @@ function MetricCard({
 }
 
 function ProgressCard() {
-    const violet = [0, 8, 1, 11, 6, 0];
-    const green = [2, 4, 0, 5, 6, 6];
+    const violet = [1, 3, 2, 5, 7, 8];
+    const green = [2, 4, 3, 6, 7, 7];
 
     return (
         <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
@@ -372,7 +367,7 @@ function ProgressCard() {
                         points={violet
                             .map(
                                 (value, index) =>
-                                    `${index * 120},${200 - value * 16}`
+                                    `${index * 120},${200 - value * 20}`
                             )
                             .join(" ")}
                     />
@@ -385,20 +380,28 @@ function ProgressCard() {
 function RecentActivity() {
     const items = [
         {
+            icon: MessagesSquare,
+            iconClass: "bg-emerald-100 text-emerald-700",
+            title: "Behavioural Interview",
+            detail: "Communication • Completed today",
+            status: "Completed",
+            statusClass: "bg-emerald-50 text-emerald-700",
+        },
+        {
             icon: Code2,
             iconClass: "bg-violet-100 text-violet-700",
-            title: "Product Analyst",
-            detail: "Coding • Python",
+            title: "Coding Practice",
+            detail: "Arrays • 3 problems solved",
             status: "In progress",
             statusClass: "bg-orange-50 text-orange-600",
         },
         {
-            icon: MessagesSquare,
-            iconClass: "bg-emerald-100 text-emerald-700",
-            title: "Gen AI Intern",
-            detail: "Behavioural • Beginner",
-            status: "Completed",
-            statusClass: "bg-emerald-50 text-emerald-700",
+            icon: FileSearch,
+            iconClass: "bg-blue-100 text-blue-700",
+            title: "Resume Analysis",
+            detail: "Software Engineer profile",
+            status: "Updated",
+            statusClass: "bg-blue-50 text-blue-700",
         },
     ];
 
@@ -409,7 +412,7 @@ function RecentActivity() {
             </h3>
 
             <p className="mt-1 text-sm text-slate-500">
-                Your latest coding and behavioural sessions.
+                Your latest preparation activity.
             </p>
 
             <div className="mt-5 space-y-4">
