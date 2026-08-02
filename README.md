@@ -394,7 +394,7 @@ https://github.com/A-arnaavv
 
 LinkedIn
 
-https://linkedin.com/in/YOUR_LINKEDIN](https://www.linkedin.com/in/arnav-aggarwal-156a51276/)
+https://www.linkedin.com/in/arnav-aggarwal-156a51276/
 
 ---
 
