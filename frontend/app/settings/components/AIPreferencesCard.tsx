@@ -51,7 +51,7 @@ export default function AIPreferencesCard({
                 </h2>
 
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                    Choose how InterviewGPT delivers coaching, feedback,
+                    Choose how CrossPrep delivers coaching, feedback,
                     and recommendations.
                 </p>
             </div>

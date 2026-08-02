@@ -33,7 +33,7 @@ export default function PrivacyDataCard({
 
                 <p className="mt-2 text-sm leading-6 text-slate-600">
                     Export your information or manage data stored by
-                    InterviewGPT.
+                    CrossPrep.
                 </p>
             </div>
 
@@ -96,7 +96,7 @@ export default function PrivacyDataCard({
 
                         <p className="mt-1 text-sm leading-6 text-red-700">
                             Deleting your account permanently removes your
-                            InterviewGPT data and cannot be undone.
+                            CrossPrep data and cannot be undone.
                         </p>
 
                         <button

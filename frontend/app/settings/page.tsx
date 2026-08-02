@@ -275,7 +275,7 @@ export default function SettingsPage() {
     const fullName =
         user?.fullName ||
         user?.firstName ||
-        "InterviewGPT User";
+        "CrossPrep Member";
 
     const email =
         user?.primaryEmailAddress?.emailAddress ||

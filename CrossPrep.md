@@ -1,8 +1,8 @@
-# InterviewGPT - Master Project Context
+# CrossPrep - Master Project Context
 
 ## Project Vision
 
-InterviewGPT is a production-grade AI-powered coding interview platform.
+CrossPrep is a production-grade AI-powered coding interview platform.
 
 The platform will:
 
@@ -465,7 +465,7 @@ interviews
 questions
 answers
 
-# InterviewGPT Status
+# CrossPrep Status
 
 ## Completed
 

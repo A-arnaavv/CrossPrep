@@ -1,8 +1,8 @@
 import {
     ArrowRight,
-    Bot,
     Check,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function FinalCTA() {
@@ -14,8 +14,13 @@ export default function FinalCTA() {
                 <div className="absolute bottom-[-7rem] right-[-5rem] h-72 w-72 rounded-full bg-violet-400/40 blur-3xl" />
 
                 <div className="relative">
-                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 text-white ring-1 ring-white/20">
-                        <Bot className="h-6 w-6" />
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white/15 p-2 ring-1 ring-white/20">
+                        <Image
+                            src="/icon.png"
+                            alt="CrossPrep"
+                            width={48}
+                            height={48}
+                        />
                     </div>
 
                     <h2 className="mx-auto mt-7 max-w-3xl text-3xl font-bold tracking-tight text-white sm:text-5xl">

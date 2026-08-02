@@ -1,24 +1,16 @@
-import { ArrowRight, Bot } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import CrossPrepLogo from "@/components/common/CrossPrepLogo";
 import Link from "next/link";
 
 export default function LandingNavbar() {
     return (
         <header className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/80 shadow-sm shadow-slate-200/40 backdrop-blur-xl">
             <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-6 lg:px-8">
-                <Link href="/" className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-600 text-white shadow-lg shadow-violet-200">
-                        <Bot className="h-5 w-5" strokeWidth={2.2} />
-                    </div>
-
-                    <div>
-                        <span className="block text-xl font-bold tracking-tight text-slate-950">
-                            CrossPrep
-                        </span>
-
-                        <span className="hidden text-xs text-slate-400 sm:block">
-                            AI Career Platform
-                        </span>
-                    </div>
+                <Link href="/">
+                    <CrossPrepLogo
+                        showSubtitle
+                        className="[&>div>span:last-child]:hidden sm:[&>div>span:last-child]:block"
+                    />
                 </Link>
 
                 <div className="hidden items-center gap-8 md:flex">

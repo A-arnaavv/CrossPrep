@@ -1,4 +1,4 @@
-import { Bot } from "lucide-react";
+import CrossPrepLogo from "@/components/common/CrossPrepLogo";
 import Link from "next/link";
 
 export default function LandingFooter() {
@@ -6,21 +6,7 @@ export default function LandingFooter() {
         <footer className="border-t border-slate-200 bg-white">
             <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:px-6 md:grid-cols-[1.2fr_1fr] lg:px-8">
                 <div>
-                    <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-600 text-white">
-                            <Bot className="h-5 w-5" />
-                        </div>
-
-                        <div>
-                            <p className="font-bold text-slate-950">
-                                CrossPrep
-                            </p>
-
-                            <p className="text-xs text-slate-400">
-                                AI Career Platform
-                            </p>
-                        </div>
-                    </div>
+                    <CrossPrepLogo showSubtitle />
 
                     <p className="mt-5 max-w-md leading-7 text-slate-500">
                         A focused workspace for resume intelligence, interview practice,

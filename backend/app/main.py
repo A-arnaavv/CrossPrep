@@ -39,7 +39,7 @@ from app.auth.dependencies import (
 )
 from app.models.user import User
 
-app = FastAPI(title="InterviewGPT API")
+app = FastAPI(title="CrossPrep API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -54,7 +54,7 @@ app.add_middleware(
 
 @app.get("/")
 def root():
-    return {"message": "InterviewGPT API Running"}
+    return {"message": "CrossPrep API Running"}
 
 
 @app.get("/api/health")

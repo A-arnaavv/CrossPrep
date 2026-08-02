@@ -187,7 +187,7 @@ export default function ProfilePage() {
     const fullName =
         user?.fullName ||
         user?.firstName ||
-        "InterviewGPT User";
+        "CrossPrep Member";
 
     const email =
         user?.primaryEmailAddress?.emailAddress ||

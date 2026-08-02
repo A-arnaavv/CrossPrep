@@ -16,6 +16,7 @@ import {
     User,
 } from "lucide-react";
 import Link from "next/link";
+import CrossPrepLogo from "@/components/common/CrossPrepLogo";
 
 export default function HeroSection() {
     return (
@@ -216,20 +217,8 @@ function DashboardSidebar() {
     return (
         <aside className="hidden flex-col justify-between border-r border-slate-100 bg-white lg:flex">
             <div>
-                <div className="flex items-center gap-3 px-6 py-7">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-600 text-white">
-                        <Bot className="h-5 w-5" />
-                    </div>
-
-                    <div>
-                        <p className="text-xl font-bold text-slate-950">
-                            CrossPrep
-                        </p>
-
-                        <p className="text-xs text-slate-400">
-                            AI Career Platform
-                        </p>
-                    </div>
+                <div className="px-6 py-7">
+                    <CrossPrepLogo showSubtitle />
                 </div>
 
                 <nav className="space-y-2 px-4">
