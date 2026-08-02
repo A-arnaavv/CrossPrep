@@ -89,7 +89,7 @@ export default function Sidebar() {
 
           <div>
             <div className="text-xl font-bold text-slate-950">
-              HirePilot
+              CrossPrep
             </div>
 
             <div className="text-xs text-slate-400">
