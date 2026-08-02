@@ -16,11 +16,11 @@
 
 **Frontend**
 
-https://YOUR-VERCEL-URL.vercel.app
+https://crossprep.vercel.app/
 
 **Backend API**
 
-https://YOUR-RENDER-URL.onrender.com
+https://interviewgpt-backend-glzi.onrender.com
 
 ---
 
@@ -390,11 +390,11 @@ This project is licensed under the MIT License.
 
 GitHub
 
-https://github.com/YOUR_USERNAME
+https://github.com/A-arnaavv
 
 LinkedIn
 
-https://linkedin.com/in/YOUR_LINKEDIN
+https://linkedin.com/in/YOUR_LINKEDIN](https://www.linkedin.com/in/arnav-aggarwal-156a51276/)
 
 ---
 
