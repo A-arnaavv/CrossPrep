@@ -19,7 +19,7 @@ export default function AboutSettingsCard({
         <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
             <div>
                 <p className="text-sm font-semibold text-violet-600">
-                    HirePilot
+                    CrossPrep
                 </p>
 
                 <h2 className="mt-1 text-xl font-bold text-slate-950">
