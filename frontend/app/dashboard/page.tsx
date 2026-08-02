@@ -232,7 +232,7 @@ export default function DashboardPage() {
 
                         <div>
                             <div className="text-xl font-bold">
-                                HirePilot
+                                CrossPrep
                             </div>
 
                             <div className="text-xs text-slate-400">
