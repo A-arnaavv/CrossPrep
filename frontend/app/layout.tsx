@@ -17,8 +17,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "InterviewGPT",
-  description: "AI Coding Interview Platform",
+  title: {
+    default: "CrossPrep",
+    template: "%s | CrossPrep",
+  },
+  description:
+    "AI-powered career preparation with resume intelligence, mock interviews, coding practice, career coaching, and progress analytics.",
+  applicationName: "CrossPrep",
 };
 
 export default function RootLayout({
