@@ -9,6 +9,7 @@ import Link from "next/link";
 import StatsCards from "./components/StatsCards";
 import PerformanceTrend from "./components/PerformanceTrend";
 import RecentInterviews from "./components/RecentInterviews";
+import CrossPrepLogo from "@/components/common/CrossPrepLogo";
 
 import {
     LayoutDashboard,
@@ -221,25 +222,8 @@ export default function DashboardPage() {
 
                 <div>
 
-                    <div className="flex items-center gap-3 px-6 py-7">
-
-                        <div className="h-10 w-10 rounded-2xl bg-violet-600 text-white flex items-center justify-center">
-                            <Bot
-                                size={24}
-                                strokeWidth={2.2}
-                            />
-                        </div>
-
-                        <div>
-                            <div className="text-xl font-bold">
-                                CrossPrep
-                            </div>
-
-                            <div className="text-xs text-slate-400">
-                                AI Career Platform
-                            </div>
-                        </div>
-
+                    <div className="px-6 py-7">
+                        <CrossPrepLogo showSubtitle />
                     </div>
 
                     <nav className="px-4 space-y-2">

@@ -14,6 +14,7 @@ import {
   Settings,
   User,
 } from "lucide-react";
+import CrossPrepLogo from "@/components/common/CrossPrepLogo";
 
 const links = [
   {
@@ -78,24 +79,8 @@ export default function Sidebar() {
     <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col justify-between border-r border-slate-100 bg-white">
       <div>
         {/* Brand */}
-        <div className="flex items-center gap-3 px-6 py-7">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-600 text-white">
-            <Bot
-              size={24}
-              strokeWidth={2.2}
-              aria-hidden="true"
-            />
-          </div>
-
-          <div>
-            <div className="text-xl font-bold text-slate-950">
-              CrossPrep
-            </div>
-
-            <div className="text-xs text-slate-400">
-              AI Career Platform
-            </div>
-          </div>
+        <div className="px-6 py-7">
+          <CrossPrepLogo showSubtitle />
         </div>
 
         {/* Navigation */}
