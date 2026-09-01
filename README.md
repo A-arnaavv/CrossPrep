@@ -269,39 +269,68 @@ NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL=
 
 # 📸 Screenshots
 
-## Landing Page
+## 🔐 Authentication
 
-(Add screenshot)
-
----
-
-## Dashboard
-
-(Add screenshot)
+<p align="center">
+  <img src="screenshots/authentication.png" width="900" alt="CrossPrep Authentication">
+</p>
 
 ---
 
-## Resume Intelligence
+## 📊 Dashboard
 
-(Add screenshot)
-
----
-
-## Mock Interview
-
-(Add screenshot)
+<p align="center">
+  <img src="screenshots/dashboard.png" width="900" alt="CrossPrep Dashboard">
+</p>
 
 ---
 
-## Coding Interview
+## 📄 Resume Intelligence
 
-(Add screenshot)
+<p align="center">
+  <img src="screenshots/resume-intelligence.png" width="900" alt="CrossPrep Resume Intelligence">
+</p>
 
 ---
 
-## Analytics
+## 🎯 Interview Hub
 
-(Add screenshot)
+<p align="center">
+  <img src="screenshots/interview-hub.png" width="900" alt="CrossPrep Interview Hub">
+</p>
+
+---
+
+## 🤖 Behavioral Interview
+
+<p align="center">
+  <img src="screenshots/behavioral-interview.png" width="900" alt="CrossPrep Behavioral Interview">
+</p>
+
+---
+
+## 💻 Coding Interview
+
+<p align="center">
+  <img src="screenshots/coding-interview.png" width="900" alt="CrossPrep Coding Interview">
+</p>
+
+---
+
+## 📈 Coding Interview Report
+
+<p align="center">
+  <img src="screenshots/coding-interview-report.png" width="900" alt="CrossPrep Coding Interview Report">
+</p>
+
+---
+
+## 🧠 AI Career Coach
+
+<p align="center">
+  <img src="screenshots/ai-coach.png" width="900" alt="CrossPrep AI Career Coach">
+</p>
+
 
 ---
 
