@@ -280,7 +280,7 @@ NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL=
 ## 📊 Dashboard
 
 <p align="center">
-  <img src="screenshots/dashboard.png" width="900" alt="CrossPrep Dashboard">
+  <img src="./screenshots/dashboard.png" width="900" alt="CrossPrep Dashboard">
 </p>
 
 ---
